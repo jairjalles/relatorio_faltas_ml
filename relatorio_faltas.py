@@ -1,5 +1,5 @@
-# Arquivo: dashboard_faltas_final.py
-# Autor: Jair Jales
+# Arquivo: relatorio_faltas.py
+# Desenvolvido por Jair Jales com base na ideia de Ronald Costa
 
 import streamlit as st
 import pandas as pd
@@ -13,7 +13,8 @@ st.set_page_config(layout="wide", page_title="Dashboard de Faltas")
 
 # ===== FUNDO PERSONALIZADO =====
 def set_background(image_file):
-    with open(image_file, "rb") as f:
+    path = os.path.join(os.path.dirname(__file__), image_file)
+    with open(path, "rb") as f:
         img64 = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
@@ -35,10 +36,11 @@ def set_background(image_file):
 
 set_background("fundo_interface.jpeg")
 
-# ===== LOGO + TITULO =====
+# ===== LOGO + TÍTULO =====
+logo_path = os.path.join(os.path.dirname(__file__), "logo.png")
 col_logo, col_title = st.columns([1, 5])
 with col_logo:
-    st.image("logo.png", width=200)
+    st.image(logo_path, width=200)
 with col_title:
     st.markdown("""
         <div style='display: flex; align-items: center; height: 200px;'>
@@ -46,16 +48,17 @@ with col_title:
         </div>
     """, unsafe_allow_html=True)
 
-# ===== CAMINHO DO ARQUIVO =====
+# ===== CAMINHO DA PLANILHA =====
 st.markdown("📁 **Caminho da planilha sincronizada no OneDrive:**")
 col_path, col_btn = st.columns([5, 1])
-caminho = col_path.text_input("", value="C:/Users/Jair Jales/OneDrive - Top Shop/BASE/FALTAS MERCADO LIVRE 2025 - Copia.xlsx")
+caminho = col_path.text_input("", value="FALTAS MERCADO LIVRE 2025 - Copia.xlsx")
 atualizar = col_btn.button("🔄 Atualizar")
 
 if not os.path.exists(caminho):
-    st.error("Caminho inválido. Verifique se a planilha está sincronizada no OneDrive.")
+    st.error("Caminho inválido. Verifique se a planilha está no mesmo diretório do app ou no caminho indicado.")
     st.stop()
 
+# ===== LEITURA DAS PLANILHAS =====
 try:
     df_raw = pd.read_excel(caminho, sheet_name="Geral", header=[4, 5], dtype=str)
     df_detalhado = pd.read_excel(caminho, sheet_name="Geral", header=5, dtype=str)
@@ -97,51 +100,51 @@ else:
 
 df_historico["Data"] = pd.to_datetime(df_historico["Data"])
 
-# ===== USUÁRIO LOCAL DETECTADO =====
+# ===== DETECÇÃO DO USUÁRIO =====
 usuario_local = getpass.getuser()
 
 # ===== ABAS =====
 tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"])
 
 with tabs[0]:
-    st.markdown(f"""
+    st.markdown("""
         <style>
-        .card-container {{
+        .card-container {
             display: flex;
             gap: 30px;
             margin-top: 10px;
             margin-bottom: 30px;
-        }}
-        .card {{
+        }
+        .card {
             background-color: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 16px;
             padding: 25px;
             min-width: 200px;
             text-align: center;
-        }}
-        .card h2 {{
+        }
+        .card h2 {
             font-size: 18px;
             margin-bottom: 8px;
             color: white;
-        }}
-        .card p {{
+        }
+        .card p {
             font-size: 24px;
             font-weight: bold;
             color: white;
-        }}
+        }
         </style>
         <div class="card-container">
             <div class="card">
                 <h2>Total de Faltas</h2>
-                <p>{df_faltas['Faltas'].sum()}</p>
+                <p>{}</p>
             </div>
             <div class="card">
                 <h2>Contas Ativas</h2>
-                <p>{df_faltas['Conta_Exibicao'].nunique()}</p>
+                <p>{}</p>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """.format(df_faltas['Faltas'].sum(), df_faltas['Conta_Exibicao'].nunique()), unsafe_allow_html=True)
 
     st.markdown("### 📊 Gráfico de Faltas por Conta")
     graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=False), x="Faltas", y="Conta_Exibicao", orientation="h")
