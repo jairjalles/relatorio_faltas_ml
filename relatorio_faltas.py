@@ -201,10 +201,9 @@ with tabs[3]:
 with tabs[4]:
     st.markdown("## 📂 Base Criados")
     st.dataframe(df_base, use_container_width=True)
-    st.link_button("🔧 Editar manualmente no SharePoint",
-        "https://topshopbrasil.sharepoint.com/:x:/r/sites/criacao/_layouts/15/Doc.aspx?"
-        "sourcedoc=%7BE87C6408-4F5C-4882-BB8E-5FB2A0845FD6%7D&file=FALTAS%20MERCADO%20LIVRE%202025%20-%20Copia.xlsx&"
-        "action=default&mobileredirect=true")
+
+    if caminho.strip().lower().startswith("http"):
+        st.link_button("🔧 Editar manualmente no SharePoint", caminho.strip())
 
 with tabs[5]:
     st.markdown("## ⚙️ Configurações Avançadas")
