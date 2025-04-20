@@ -49,7 +49,9 @@ with col_title:
 # ===== CAMINHO DO ARQUIVO =====
 st.markdown("📁 **Caminho da planilha sincronizada no OneDrive:**")
 col_path, col_btn = st.columns([5, 1])
-caminho = col_path.text_input("", value="C:/Users/Jair Jales/OneDrive - Top Shop/BASE/FALTAS MERCADO LIVRE 2025 - Copia.xlsx")
+default_path = "planilhas/FALTAS MERCADO LIVRE 2025 - Copia.xlsx"
+caminho = col_path.text_input("📁 Caminho do arquivo:", value=default_path)
+
 atualizar = col_btn.button("🔄 Atualizar")
 
 if not os.path.exists(caminho):
