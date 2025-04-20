@@ -8,6 +8,11 @@ import base64
 import os
 import getpass
 from datetime import datetime
+import subprocess
+
+# Sincroniza com o GitHub antes de carregar a interface
+subprocess.call("git pull origin main", shell=True)
+
 
 st.set_page_config(layout="wide", page_title="Dashboard de Faltas")
 
