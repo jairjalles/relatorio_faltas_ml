@@ -59,9 +59,20 @@ caminho = col_path.text_input("📁 Caminho do arquivo:", value=default_path)
 
 atualizar = col_btn.button("🔄 Atualizar")
 
-if not os.path.exists(caminho):
-    st.error("Caminho inválido. Verifique se a planilha está sincronizada no OneDrive.")
-    st.stop()
+if caminho.lower().startswith("http"):
+    st.warning("Este é um link online. O botão de edição estará disponível, mas a leitura da planilha será ignorada.")
+    df_raw = pd.DataFrame()
+    df_detalhado = pd.DataFrame()
+    df_base = pd.DataFrame()
+else:
+    if not os.path.exists(caminho):
+        st.error("Caminho inválido. Verifique se a planilha está sincronizada no OneDrive.")
+        st.stop()
+
+    # Continua normalmente a leitura da planilha se for local
+    df_raw = pd.read_excel(caminho, sheet_name="Geral", header=[4, 5], dtype=str)
+    df_detalhado = pd.read_excel(caminho, sheet_name="Geral", header=5, dtype=str)
+    df_base = pd.read_excel(caminho, sheet_name="Base Criados", header=2, dtype=str)
 
 try:
     df_raw = pd.read_excel(caminho, sheet_name="Geral", header=[4, 5], dtype=str)
