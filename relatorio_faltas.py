@@ -1,3 +1,6 @@
+# Arquivo: dashboard_faltas_final.py
+# Autor: Jair Jales
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -10,11 +13,7 @@ st.set_page_config(layout="wide", page_title="Dashboard de Faltas")
 
 # ===== FUNDO PERSONALIZADO =====
 def set_background(image_file):
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), image_file)
-    if not os.path.exists(path):
-        st.warning(f"Imagem de fundo não encontrada: {path}")
-        return
-    with open(path, "rb") as f:
+    with open(image_file, "rb") as f:
         img64 = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
@@ -39,11 +38,7 @@ set_background("fundo_interface.jpeg")
 # ===== LOGO + TITULO =====
 col_logo, col_title = st.columns([1, 5])
 with col_logo:
-    logo_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "logo.png")
-    if os.path.exists(logo_path):
-        st.image(logo_path, width=200)
-    else:
-        st.warning("Logo não encontrada.")
+    st.image("logo.png", width=200)
 with col_title:
     st.markdown("""
         <div style='display: flex; align-items: center; height: 200px;'>
@@ -51,7 +46,7 @@ with col_title:
         </div>
     """, unsafe_allow_html=True)
 
-# ===== LEITURA DAS PLANILHAS =====
+# ===== CAMINHO DO ARQUIVO =====
 st.markdown("📁 **Caminho da planilha sincronizada no OneDrive:**")
 col_path, col_btn = st.columns([5, 1])
 caminho = col_path.text_input("", value="C:/Users/Jair Jales/OneDrive - Top Shop/BASE/FALTAS MERCADO LIVRE 2025 - Copia.xlsx")
@@ -82,7 +77,6 @@ try:
                                 var_name="Conta", value_name="Check")
     df_long["Conta_Exibicao"] = df_long["Conta"].str.split(".").str[0].str.upper().str.strip()
     df_long["Faltas"] = df_long["Check"].fillna("0").apply(lambda x: 1 if str(x).strip() == "0" else 0)
-
 except Exception as e:
     st.error(f"Erro ao processar a planilha: {e}")
     st.stop()
@@ -103,52 +97,51 @@ else:
 
 df_historico["Data"] = pd.to_datetime(df_historico["Data"])
 
-# ===== DETECÇÃO DO USUÁRIO =====
+# ===== USUÁRIO LOCAL DETECTADO =====
 usuario_local = getpass.getuser()
 
 # ===== ABAS =====
 tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"])
 
 with tabs[0]:
-    # ===== CARDS RESUMO =====
-    st.markdown("""
+    st.markdown(f"""
         <style>
-        .card-container {
+        .card-container {{
             display: flex;
             gap: 30px;
             margin-top: 10px;
             margin-bottom: 30px;
-        }
-        .card {
+        }}
+        .card {{
             background-color: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 16px;
             padding: 25px;
             min-width: 200px;
             text-align: center;
-        }
-        .card h2 {
+        }}
+        .card h2 {{
             font-size: 18px;
             margin-bottom: 8px;
             color: white;
-        }
-        .card p {
+        }}
+        .card p {{
             font-size: 24px;
             font-weight: bold;
             color: white;
-        }
+        }}
         </style>
         <div class="card-container">
             <div class="card">
                 <h2>Total de Faltas</h2>
-                <p>{}</p>
+                <p>{df_faltas['Faltas'].sum()}</p>
             </div>
             <div class="card">
                 <h2>Contas Ativas</h2>
-                <p>{}</p>
+                <p>{df_faltas['Conta_Exibicao'].nunique()}</p>
             </div>
         </div>
-    """.format(df_faltas['Faltas'].sum(), df_faltas['Conta_Exibicao'].nunique()), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
     st.markdown("### 📊 Gráfico de Faltas por Conta")
     graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=False), x="Faltas", y="Conta_Exibicao", orientation="h")
@@ -189,7 +182,7 @@ with tabs[2]:
     st.dataframe(contas_alerta)
 
     st.subheader("🟠 SKUs com falta em 5+ contas")
-    skus_alerta = df_long[df_long["Faltas"] == 1].groupby("SKU")["Conta_Exibicao"].nunique().reset_index(name="Contas com Falta")
+    skus_alerta = df_long[df_long["Faltas"] == 1].groupby("SKU")["Conta_Exibicao"].count().reset_index(name="Contas com Falta")
     st.dataframe(skus_alerta[skus_alerta["Contas com Falta"] >= 5])
 
 with tabs[3]:
@@ -202,9 +195,9 @@ with tabs[4]:
     st.markdown("## 📂 Base Criados")
     st.dataframe(df_base, use_container_width=True)
     st.link_button("🔧 Editar manualmente no SharePoint",
-        "https://topshopbrasil.sharepoint.com/:x:/r/sites/criacao/_layouts/15/Doc.aspx?\
-sourcedoc=%7BE87C6408-4F5C-4882-BB8E-5FB2A0845FD6%7D&file=FALTAS%20MERCADO%20LIVRE%202025%20-%20Copia.xlsx&\
-action=default&mobileredirect=true")
+        "https://topshopbrasil.sharepoint.com/:x:/r/sites/criacao/_layouts/15/Doc.aspx?"
+        "sourcedoc=%7BE87C6408-4F5C-4882-BB8E-5FB2A0845FD6%7D&file=FALTAS%20MERCADO%20LIVRE%202025%20-%20Copia.xlsx&"
+        "action=default&mobileredirect=true")
 
 with tabs[5]:
     st.markdown("## ⚙️ Configurações Avançadas")
