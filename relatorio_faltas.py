@@ -182,18 +182,18 @@ with tabs[0]:
 
         # GRÁFICO DE FALTAS POR CONTA — leitura direta da linha 5 da planilha
     st.markdown("### 📊 Faltas por Conta")
-          try:
-              df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
-              linha_faltas = df_raw_sem_header.iloc[4, 4:]  # linha 5 (índice 4), colunas a partir de E
-              cabecalhos = df_raw_sem_header.iloc[5, 4:]    # linha 6 (índice 5), nomes das contas
-              contas, faltas = [], []
-              for val, conta in zip(linha_faltas, cabecalhos):
-                  if pd.notna(val) and str(val).isdigit():
-                      contas.append(str(conta).strip().upper())
-                      faltas.append(int(val))
-              df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
+        try:
+            df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
+            linha_faltas = df_raw_sem_header.iloc[4, 4:]  # linha 5 (índice 4), colunas a partir de E
+            cabecalhos = df_raw_sem_header.iloc[5, 4:]    # linha 6 (índice 5), nomes das contas
+            contas, faltas = [], []
+            for val, conta in zip(linha_faltas, cabecalhos):
+                if pd.notna(val) and str(val).isdigit():
+                contas.append(str(conta).strip().upper())
+                faltas.append(int(val))
+            df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
         
-              g1 = px.bar(
+            g1 = px.bar(
                   df_faltas_corrigido.sort_values("Faltas", ascending=True),
                   x="Faltas", y="Conta_Exibicao", orientation="h",
                   color="Faltas", text="Faltas"
