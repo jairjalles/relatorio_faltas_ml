@@ -247,8 +247,7 @@ with tabs[0]:
             st.markdown("""
             <div style='padding: 20px; background-color: rgba(255,255,255,0.08); border-radius: 15px; margin-top: 10px;'>
                 <h4 style='margin-bottom: 20px;'>🎯 <b>Filtros</b></h4>
-                <p style='margin-bottom:5px;'>📁 Filtrar por Conta</p>
-            """, unsafe_allow_html=True)
+            st.markdown("<p style='margin-top:15px;margin-bottom:5px;'> 📁 Filtrar por Conta</p>", unsafe_allow_html=True)
             conta_sel = st.selectbox("", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
             st.markdown("<p style='margin-top:15px;margin-bottom:5px;'>🏷️ Filtrar por Marca</p>", unsafe_allow_html=True)
             marca_sel = st.selectbox("", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
