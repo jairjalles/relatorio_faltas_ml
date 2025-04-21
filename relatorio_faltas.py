@@ -22,10 +22,11 @@ def set_background(image_file):
             background-size: cover;
             background-attachment: fixed;
         }}
-        .main > div {{
-            background-color: rgba(255,255,255,0.10);
-            padding: 2rem;
+        section.main > div {{
+            background-color: rgba(255, 255, 255, 0.10);
             border-radius: 15px;
+            padding: 25px;
+            margin-top: 10px;
         }}
         h1,h2,h3,h4,h5,h6, label, p, div {{
             color: white !important;
