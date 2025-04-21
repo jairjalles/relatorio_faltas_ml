@@ -186,58 +186,63 @@ with tabs[0]:
         if marca_sel != "Todas":
             df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
-    st.markdown("### 📊 Faltas por Conta")
+        # --- GRÁFICO FALTAS POR CONTA ---
+        st.markdown("### 📊 Faltas por Conta")
+        try:
+            df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
+            linha_faltas = df_raw_sem_header.iloc[4, 4:]
+            cabecalhos = df_raw_sem_header.iloc[5, 4:]
 
-try:
-    df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
-    linha_faltas = df_raw_sem_header.iloc[4, 4:]
-    cabecalhos = df_raw_sem_header.iloc[5, 4:]
+            contas, faltas = [], []
+            for val, conta in zip(linha_faltas, cabecalhos):
+                if pd.notna(val) and str(val).isdigit():
+                    contas.append(str(conta).strip().upper())
+                    faltas.append(int(val))
 
-    contas, faltas = [], []
-    for val, conta in zip(linha_faltas, cabecalhos):
-        if pd.notna(val) and str(val).isdigit():
-            contas.append(str(conta).strip().upper())
-            faltas.append(int(val))
+            df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
 
-    df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
+            g1 = px.bar(
+                df_faltas_corrigido.sort_values("Faltas", ascending=True),
+                x="Faltas", y="Conta_Exibicao", orientation="h",
+                color="Faltas", text="Faltas"
+            )
+            g1.update_layout(
+                plot_bgcolor="rgba(255,255,255,0.05)",
+                paper_bgcolor="rgba(255,255,255,0.05)",
+                transition_duration=500,
+                height=650,
+                margin=dict(l=20, r=20, t=40, b=20)
+            )
+            g1.update_traces(
+                textposition="outside",
+                texttemplate="%{text}",
+                marker=dict(line=dict(width=0)),
+                hoverinfo="x+y"
+            )
 
-    g1 = px.bar(
-        df_faltas_corrigido.sort_values("Faltas", ascending=True),
-        x="Faltas", y="Conta_Exibicao", orientation="h",
-        color="Faltas", text="Faltas"
-    )
+            st.plotly_chart(g1, use_container_width=True, key="graf_faltas")
 
-    g1.update_layout(
-        plot_bgcolor="rgba(255,255,255,0.05)",  # fundo branco translúcido
-        paper_bgcolor="rgba(255,255,255,0.05)",
-        transition_duration=500,
-        height=650,
-        margin=dict(l=20, r=20, t=40, b=20)
-    )
+        except Exception as erro:
+            st.error(f"Erro ao gerar gráfico: {erro}")
 
-    g1.update_traces(
-        textposition="outside",
-        texttemplate="%{text}",
-        marker=dict(line=dict(width=0)),
-        hoverinfo="x+y",
-        selector=dict(type="bar")
-    )
+        # --- GRÁFICO MARCAS ---
+        st.markdown("### 🏷️ Top Marcas com mais Faltas")
+        top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
+        g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
+        g2.update_layout(
+            plot_bgcolor="rgba(255,255,255,0.05)",
+            paper_bgcolor="rgba(255,255,255,0.05)",
+            transition_duration=500
+        )
+        g2.update_traces(textposition="outside")
+        st.plotly_chart(g2, use_container_width=True, key="g_marcas")
 
-    st.plotly_chart(g1, use_container_width=True, key="graf_faltas")
-
-except Exception as erro:
-    st.error(f"Erro ao gerar gráfico: {erro}")
-
-# Este trecho deve estar fora do bloco `except` para não depender do erro
-st.markdown("### 🏷️ Top Marcas com mais Faltas")
-top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
-g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
-g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-g2.update_traces(textposition="outside")
-st.plotly_chart(g2, use_container_width=True, key="g_marcas")
-
-st.markdown("### 📋 Tabela Geral de Dados")
-st.dataframe(df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], height=400, use_container_width=True)
+        # --- TABELA DETALHADA ---
+        st.markdown("### 📋 Tabela Geral de Dados")
+        st.dataframe(
+            df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
+            height=400, use_container_width=True
+        )
 
 # --- TAB 1: Histórico ---
 with tabs[1]:
