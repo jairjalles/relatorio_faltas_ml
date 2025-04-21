@@ -242,38 +242,35 @@ with tabs[0]:
             </div>
             """, unsafe_allow_html=True)
 
-        # ----------- FILTROS (visualmente integrados ao card) -----------
+        # ----------- FILTROS INTEGRADOS EM UM ÚNICO CARD -----------
         with col_filtros:
             st.markdown("""
                 <div style='
                     padding: 20px;
                     background-color: rgba(255,255,255,0.07);
                     border-radius: 15px;
-                    margin-top: 6px;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    margin-top: 10px;
                 '>
                     <h5 style='margin-bottom: 20px;'>🎯 <b>Filtros</b></h5>
                     <p style='margin-bottom:5px;'>📁 <b>Filtrar por Conta</b></p>
-                </div>
             """, unsafe_allow_html=True)
 
             conta_sel = st.selectbox(
-                "",  # label omitida
+                "",  # ocultar label para encaixar visual
                 ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()),
                 key="filtro_conta"
             )
 
-            st.markdown("""
-                <div style='margin-top:20px;'>
-                    <p style='margin-bottom:5px;'>🏷️ <b>Filtrar por Marca</b></p>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown("<p style='margin-top:20px;margin-bottom:5px;'>🏷️ <b>Filtrar por Marca</b></p>", unsafe_allow_html=True)
 
             marca_sel = st.selectbox(
-                "",  # label omitida
+                "",  # ocultar label
                 ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()),
                 key="filtro_marca"
             )
+
+            st.markdown("</div>", unsafe_allow_html=True)
 
         # ----------- APLICAR FILTROS -----------
         df_fil = df_long.copy()
