@@ -230,10 +230,9 @@ with tabs[0]:
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
 
-        # Layout com cards e filtros lado a lado
-        linha = st.columns([4, 1])  # Cards (maior) | Filtros (menor)
+        linha = st.columns([4, 1])  # Cards à esquerda, Filtros à direita
 
-        # 🔹 Bloco dos cards
+        # 🔹 Cards
         with linha[0]:
             st.markdown(f"""
             <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
@@ -243,12 +242,29 @@ with tabs[0]:
             </div>
             """, unsafe_allow_html=True)
 
-        # 🔸 Bloco dos filtros
+        # 🔸 Filtros
         with linha[1]:
-            st.markdown("### 🎯 Filtros")
-            conta_sel = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
-            marca_sel = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
+            st.markdown("""
+            <div style='margin-top:10px; padding:15px; background-color: rgba(255,255,255,0.05); border-radius: 15px;'>
+                <h4 style='margin-bottom:15px;'>🎯 <b>Filtros</b></h4>
 
+                <div style='margin-bottom:15px;'>
+                    <p style='margin-bottom:5px;'>📁 <b>Filtrar por Conta</b></p>
+            """, unsafe_allow_html=True)
+
+            conta_sel = st.selectbox("", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
+
+            st.markdown("""
+                </div>
+                <div>
+                    <p style='margin-bottom:5px;'>🏷️ <b>Filtrar por Marca</b></p>
+            """, unsafe_allow_html=True)
+
+            marca_sel = st.selectbox("", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
+
+            st.markdown("</div></div>", unsafe_allow_html=True)
+
+        # 🔄 Aplicar filtros aos dados
         df_fil = df_long.copy()
         if conta_sel != "Todas":
             df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
