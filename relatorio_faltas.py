@@ -195,7 +195,7 @@ st.plotly_chart(graf_marcas, use_container_width=True)
 st.markdown("### 📋 Tabela Geral de Dados")
 st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
             use_container_width=True, height=400)
-else:
+ else:
     st.warning("Nenhum dado disponível para exibir.")
 
 with tabs[1]:
