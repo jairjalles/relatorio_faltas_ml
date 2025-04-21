@@ -230,8 +230,12 @@ with tabs[1]:
 
     # Filtros de data
     col1, col2 = st.columns(2)
-    data_max = df_hist["Data"].max()
-    data_min = df_hist["Data"].min()
+    if df_hist.empty:
+        st.warning("Histórico vazio.")
+        st.stop()
+
+    data_max = df_hist["Data"].max().date()
+    data_min = df_hist["Data"].min().date()
 
     ini = col1.date_input("📅 De", value=data_max - timedelta(days=7), min_value=data_min, max_value=data_max, key="data_ini")
     fim = col2.date_input("📅 Até", value=data_max, min_value=data_min, max_value=data_max, key="data_fim")
