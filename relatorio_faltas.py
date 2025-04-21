@@ -205,7 +205,6 @@ with tabs[0]:
             height=1000  # 👈 aumenta o tamanho do gráfico
         )
         g1.update_traces(textposition="outside")
-        st.plotly_chart(g1, key="g_contas")  # sem o use_container_width
 
     except Exception as erro:
         st.error(f"Erro ao gerar gráfico: {erro}")
