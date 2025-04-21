@@ -209,14 +209,16 @@ with tabs[0]:
         )
 
 # --- TAB 1: Histórico ---
-with tabs[1]:
-    st.markdown("## 📈 Evolução das Faltas")
-    d1, d2 = st.columns(2)
-    ini = d1.date_input("De", datetime.today(), key="h_ini")
-    fim = d2.date_input("Até", datetime.today(), key="h_fim")
-    df_p = df_hist[(df_hist["Data"] >= pd.to_datetime(ini)) & (df_hist["Data"] <= pd.to_datetime(fim))]
-    gh = px.line(df_p, x="Data", y="Total Faltas", markers=True)
-    st.plotly_chart(gh, use_container_width=True, key="g_hist")
+# GRÁFICO DE FALTAS POR CONTA — leitura direta da linha 5
+st.markdown("### 📊 Faltas por Conta")
+g1 = px.bar(
+    df_faltas.sort_values("Faltas", ascending=True),
+    x="Faltas", y="Conta_Exibicao", orientation="h",
+    color="Faltas", text="Faltas"
+)
+g1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+g1.update_traces(textposition="outside")
+st.plotly_chart(g1, use_container_width=True, key="g_contas")
 
 # --- TAB 2: Alertas ---
 with tabs[2]:
