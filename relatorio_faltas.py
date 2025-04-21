@@ -222,7 +222,6 @@ tabs = st.tabs([
     "📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas",
     "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"
 ])
-
 with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
@@ -231,12 +230,12 @@ with tabs[0]:
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
 
         # LINHA DE CARDS + FILTROS
-        col_cards, col_filtros = st.columns([4, 1])
+        col_cards, col_filtros = st.columns([4, 1], gap="large")
 
         # ----------- CARDS -----------
         with col_cards:
             st.markdown(f"""
-            <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
+            <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:10px;'>
               <div class='custom-card'><h3>📦 Total de Faltas</h3><p style='font-size:26px;font-weight:bold;'>{tot_hoje}</p></div>
               <div class='custom-card'><h3>🏬 Contas Ativas</h3><p style='font-size:26px;font-weight:bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p></div>
               <div class='custom-card'><h3>📅 Atualização</h3><p style='font-size:20px;font-weight:bold;'>{now}</p></div>
@@ -246,13 +245,13 @@ with tabs[0]:
         # ----------- FILTROS -----------
         with col_filtros:
             st.markdown("""
-            <div style='padding: 20px; background-color: rgba(255,255,255,0.08); border-radius: 15px; margin-top: 8px;'>
+            <div style='padding: 20px; background-color: rgba(255,255,255,0.08); border-radius: 15px; margin-top: 10px;'>
                 <h4 style='margin-bottom: 20px;'>🎯 <b>Filtros</b></h4>
+                <p style='margin-bottom:5px;'>📁 Filtrar por Conta</p>
             """, unsafe_allow_html=True)
-
-            conta_sel = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
-            marca_sel = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
-
+            conta_sel = st.selectbox("", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
+            st.markdown("<p style='margin-top:15px;margin-bottom:5px;'>🏷️ Filtrar por Marca</p>", unsafe_allow_html=True)
+            marca_sel = st.selectbox("", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
             st.markdown("</div>", unsafe_allow_html=True)
 
         # ----------- APLICAR FILTROS -----------
@@ -262,12 +261,24 @@ with tabs[0]:
         if marca_sel != "Todas":
             df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
-        # ----------- GRÁFICO FALTAS POR CONTA -----------
+        # ----------- GRÁFICO DE FALTAS POR CONTA -----------
         st.markdown("### 📊 Faltas por Conta")
         try:
-            faltas_por_conta = df_fil.groupby("Conta_Exibicao")["Faltas"].sum().reset_index()
+            df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
+            linha_faltas = df_raw_sem_header.iloc[4, 4:]
+            cabecalhos = df_raw_sem_header.iloc[5, 4:]
+
+            contas, faltas = [], []
+            for val, conta in zip(linha_faltas, cabecalhos):
+                if pd.notna(val) and str(val).isdigit():
+                    if conta_sel == "Todas" or str(conta).strip().upper() == conta_sel:
+                        contas.append(str(conta).strip().upper())
+                        faltas.append(int(val))
+
+            df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
+
             g1 = px.bar(
-                faltas_por_conta.sort_values("Faltas", ascending=True),
+                df_faltas_corrigido.sort_values("Faltas", ascending=True),
                 x="Faltas", y="Conta_Exibicao", orientation="h",
                 color="Faltas", text="Faltas"
             )
@@ -282,7 +293,7 @@ with tabs[0]:
         except Exception as erro:
             st.error(f"Erro ao gerar gráfico: {erro}")
 
-        # ----------- GRÁFICO TOP MARCAS -----------
+        # ----------- GRÁFICO MARCAS FILTRADAS -----------
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
         top_m = (
             df_fil.groupby("Marca")["Faltas"]
@@ -302,9 +313,10 @@ with tabs[0]:
 
         # ----------- TABELA DETALHADA -----------
         st.markdown("### 📋 Tabela Geral de Dados")
-        st.dataframe(df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
-                     height=400, use_container_width=True)
-
+        st.dataframe(
+            df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
+            height=400, use_container_width=True
+        )
 # --- TAB 1: Histórico ---
 with tabs[1]:
     st.markdown("## 📈 Histórico de Faltas por Dia")
