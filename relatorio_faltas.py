@@ -242,35 +242,39 @@ with tabs[0]:
             </div>
             """, unsafe_allow_html=True)
 
-        # ----------- FILTROS -----------
+        # ----------- FILTROS (visualmente integrados ao card) -----------
         with col_filtros:
-            st.markdown(
-                """
+            st.markdown("""
                 <div style='
                     padding: 20px;
                     background-color: rgba(255,255,255,0.07);
                     border-radius: 15px;
-                    margin-top: 0px;
-                    margin-left: -50px;
+                    margin-top: 6px;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
                 '>
-                    <h5 style='margin-bottom: 15px;'>🎯 <b>Filtros</b></h5>
+                    <h5 style='margin-bottom: 20px;'>🎯 <b>Filtros</b></h5>
+                    <p style='margin-bottom:5px;'>📁 <b>Filtrar por Conta</b></p>
                 </div>
-                """,
-                unsafe_allow_html=True
-            )
+            """, unsafe_allow_html=True)
 
             conta_sel = st.selectbox(
-                "📁 Filtrar por Conta",
+                "",  # label omitida
                 ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()),
                 key="filtro_conta"
             )
 
+            st.markdown("""
+                <div style='margin-top:20px;'>
+                    <p style='margin-bottom:5px;'>🏷️ <b>Filtrar por Marca</b></p>
+                </div>
+            """, unsafe_allow_html=True)
+
             marca_sel = st.selectbox(
-                "🏷️ Filtrar por Marca",
+                "",  # label omitida
                 ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()),
                 key="filtro_marca"
             )
+
         # ----------- APLICAR FILTROS -----------
         df_fil = df_long.copy()
         if conta_sel != "Todas":
