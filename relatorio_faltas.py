@@ -115,42 +115,45 @@ if not os.path.isfile(planilha):
     st.stop()
 
 # ===== LEITURA E TRANSFORMAÇÃO DOS DADOS =====
+# ===== LEITURA E TRANSFORMAÇÃO DOS DADOS =====
 try:
-    # planilha "Geral"
+    # leitura da aba Geral
     df_raw = pd.read_excel(planilha, sheet_name="Geral", header=[4,5], dtype=str)
     df_det = pd.read_excel(planilha, sheet_name="Geral", header=5, dtype=str)
-    # planilha "Base Criados"
-      # Base Criados: cabeçalho com dois níveis (data, conta)
-    df_base = pd.read_excel(
-        planilha,
-        sheet_name="Base Criados",
-        header=[0, 1],
-        dtype=str
-    )
 
-    # transforma em long usando o segundo nível do cabeçalho (nome das contas)
-    df_base_long = (
-        df_base
-        .melt(ignore_index=False, var_name=["Data", "Conta_Exibicao"], value_name="SKU")
-        .reset_index(drop=True)[["Conta_Exibicao", "SKU"]]
-        .dropna()
-    )
+    # leitura da Base Criados (com dois níveis de header: data e nome da conta)
+    df_base = pd.read_excel(planilha, sheet_name="Base Criados", header=[0, 1], dtype=str)
 
-    # agora o melt do detalhado
+    # transforma MultiIndex em nome único tipo: "Walker Tape"
+    df_base.columns = [str(c[1]).strip().upper() for c in df_base.columns]
+
+    # cria DataFrame long com: Conta_Exibicao e SKU
+    df_base_long = df_base.melt(ignore_index=False, var_name="Conta_Exibicao", value_name="SKU")
+    df_base_long = df_base_long[["Conta_Exibicao", "SKU"]].dropna()
+
+    # Faltas por conta
+    contas, faltas = [], []
+    for v, n in df_raw.columns[4:]:
+        if isinstance(n, str) and str(v).isdigit():
+            contas.append(n.strip().upper())
+            faltas.append(int(v))
+    df_faltas = pd.DataFrame({
+        "Conta_Exibicao": contas,
+        "Faltas": faltas
+    }).drop_duplicates("Conta_Exibicao")
+
+    # Detalhado (long)
     cols = df_det.columns[4:]
     df_long = df_det.melt(
         id_vars=["SKU", "Estoque", "Marca", "Titulo"],
         value_vars=cols,
-        var_name="Conta",
-        value_name="Check"
+        var_name="Conta", value_name="Check"
     )
     df_long["Conta_Exibicao"] = (
-        df_long["Conta"]
-        .str.split(".").str[0]
-        .str.upper().str.strip()
+        df_long["Conta"].str.split(".").str[0].str.upper().str.strip()
     )
 
-    # remove SKUs já criados na base
+    # remove os que já foram criados
     df_long = (
         df_long
         .merge(df_base_long.drop_duplicates(), on=["SKU", "Conta_Exibicao"], how="left", indicator="_base_")
@@ -158,50 +161,12 @@ try:
         .drop(columns="_base_")
     )
 
-    # marca Faltas apenas para os que têm estoque 0 (Check = 0)
+    # aplica regra de falta
     df_long["Faltas"] = df_long["Check"].fillna("0").apply(lambda x: 1 if str(x).strip() == "0" else 0)
-
-    # ==== FALTAS POR CONTA (linha 5) ====
-    contas, faltas = [], []
-    for v, n in df_raw.columns[4:]:
-        if isinstance(n, str) and str(v).isdigit():
-            contas.append(n.split('.')[0].strip().upper())
-            faltas.append(int(v))
-    df_faltas = pd.DataFrame({
-        "Conta_Exibicao": contas,
-        "Faltas": faltas
-    }).drop_duplicates("Conta_Exibicao")
-
-    # ==== DETALHADO LONG + FILTRO BASE CRIADOS ====
-    cols = df_det.columns[4:]
-    df_long = df_det.melt(
-        id_vars=["SKU","Estoque","Marca","Titulo"],
-        value_vars=cols,
-        var_name="Conta", value_name="Check"
-    )
-    df_long["Conta_Exibicao"] = (
-        df_long["Conta"].str.split(".").str[0]
-                 .str.upper().str.strip()
-    )
-    # merge para remover SKUs já criados
-    df_long = df_long.merge(
-        df_base.rename(columns={"Conta_Exibicao":"Conta_Exibicao","SKU":"SKU"})[["SKU","Conta_Exibicao"]]
-          .drop_duplicates(),
-        on=["SKU","Conta_Exibicao"],
-        how="left",
-        indicator=True
-    )
-    df_long = df_long[df_long["_merge"]=="left_only"].drop(columns="_merge")
-    # agora sim faltas = estoque 0 & não criado
-    df_long["Faltas"] = (
-        df_long["Check"].fillna("0")
-                 .apply(lambda x: 1 if str(x).strip()=="0" else 0)
-    )
 
 except Exception as e:
     st.error(f"Erro ao processar a planilha: {e}")
     st.stop()
-
 # ===== HISTÓRICO =====
 hist_path = "historico_faltas.csv"
 hoje = datetime.today().strftime("%Y-%m-%d")
