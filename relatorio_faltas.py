@@ -8,6 +8,8 @@ import base64
 import os
 import getpass
 from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 
 st.set_page_config(layout="wide", page_title="Dashboard de Faltas", initial_sidebar_state="expanded")
 
@@ -175,10 +177,6 @@ tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥
 
 with tabs[0]:
     if not df_long.empty and "Conta_Exibicao" in df_long.columns:
-        # Bloco de destaque visual com cards e alertas
-from datetime import datetime, timedelta
-import pytz
-
 # Hora com fuso do Brasil
 fuso_br = pytz.timezone("America/Sao_Paulo")
 agora = datetime.now(fuso_br)
