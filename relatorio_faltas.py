@@ -44,6 +44,16 @@ def set_background(image_file):
 
 set_background("fundo_interface.jpeg")
 
+st.markdown("""
+    <style>
+    .main > div {{
+        background-color: rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 30px;
+    }}
+    </style>
+""", unsafe_allow_html=True)
+
 # ===== LOGO + TITULO =====
 col_logo, col_title = st.columns([1, 5])
 with col_logo:
