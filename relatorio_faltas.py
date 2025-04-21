@@ -99,27 +99,21 @@ if not os.path.isfile(planilha):
     st.stop()
 
 try:
-    # Leitura com cabeçalho multi-nível (linha 5 e 6 do Excel)
     df_headered = pd.read_excel(planilha, sheet_name="Geral", header=[4,5], dtype=str)
-    
-    # Lê diretamente as colunas E em diante, com valor + nome da conta
     contas, faltas = [], []
     for col in df_headered.columns[4:]:
         valor, nome = col
         if str(valor).isdigit() and pd.notna(nome):
             contas.append(str(nome).strip().upper())
             faltas.append(int(valor))
-
     df_faltas = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
 
-    # Demais blocos continuam:
     df_det = pd.read_excel(planilha, sheet_name="Geral", header=5, dtype=str)
     df_base = pd.read_excel(planilha, sheet_name="Base Criados", header=[0, 1], dtype=str)
     df_base.columns = [str(c[1]).strip().upper() for c in df_base.columns]
     df_base_long = df_base.melt(ignore_index=False, var_name="Conta_Exibicao", value_name="SKU")
     df_base_long = df_base_long[["Conta_Exibicao", "SKU"]].dropna()
 
-    # Transforma a aba Geral para análise detalhada
     cols = df_det.columns[4:]
     df_long = df_det.melt(
         id_vars=["SKU", "Estoque", "Marca", "Titulo"],
