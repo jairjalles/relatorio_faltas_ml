@@ -17,30 +17,42 @@ def set_background(image_file):
         img64 = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
+        /* Fundo com imagem */
         .stApp {{
             background-image: url("data:image/png;base64,{img64}");
             background-size: cover;
             background-attachment: fixed;
         }}
 
+        /* Caixa translúcida global envolvendo o conteúdo */
         .block-container {{
             background-color: rgba(255, 255, 255, 0.10);
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 10px;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }}
 
-        h1,h2,h3,h4,h5,h6, label, p, div {{
+        /* Textos e títulos em branco */
+        h1, h2, h3, h4, h5, h6, p, label, span {{
             color: white !important;
         }}
-        .stButton>button {{
+
+        /* Botões */
+        .stButton > button {{
             background: linear-gradient(90deg,#235C9B,#012C4E)!important;
-            color:white!important; font-weight:bold!important;
-            border-radius:12px!important;
+            color: white!important;
+            font-weight: bold!important;
+            border-radius: 12px!important;
         }}
+
+        /* Abas grandes e visíveis */
         .stTabs [data-baseweb="tab"] {{
             font-size: 18px;
             padding: 10px 24px;
+            color: white !important;
         }}
         </style>
     """, unsafe_allow_html=True)
