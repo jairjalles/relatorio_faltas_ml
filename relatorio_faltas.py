@@ -114,28 +114,25 @@ tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥
 with tabs[0]:
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(f"""
+        st.markdown("""
         <div class="card">
             <h2>📦 Total de Faltas</h2>
-            <p style='font-size:30px'>{df_faltas['Faltas'].sum()}</p>
+            <p style='font-size:30px'>{}</p>
         </div>
-        """, unsafe_allow_html=True)
+        """.format(df_faltas['Faltas'].sum()), unsafe_allow_html=True)
     with col2:
-        st.markdown(f"""
+        st.markdown("""
         <div class="card">
             <h2>🏢 Contas Ativas</h2>
-            <p style='font-size:30px'>{df_faltas['Conta_Exibicao'].nunique()}</p>
+            <p style='font-size:30px'>{}</p>
         </div>
-        """, unsafe_allow_html=True)
+        """.format(df_faltas['Conta_Exibicao'].nunique()), unsafe_allow_html=True)
 
     conta_filtro = st.selectbox("📁 Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique()))
-    marca_filtro = st.selectbox("🏷️ Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique()))
-
-    df_filtrado = df_long.copy()
     if conta_filtro != "Todas":
-        df_filtrado = df_filtrado[df_filtrado["Conta_Exibicao"] == conta_filtro]
-    if marca_filtro != "Todas":
-        df_filtrado = df_filtrado[df_filtrado["Marca"] == marca_filtro]
+        df_filtrado = df_long[df_long["Conta_Exibicao"] == conta_filtro]
+    else:
+        df_filtrado = df_long
 
     st.markdown("### 📊 Faltas por Conta")
     graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=True), x="Faltas", y="Conta_Exibicao", orientation="h",
@@ -147,12 +144,20 @@ with tabs[0]:
     top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
     st.plotly_chart(px.bar(top_marcas, x="Faltas", y="Marca", orientation="h", color="Faltas"), use_container_width=True)
 
+    st.markdown("### 📉 Contas com mais SKUs zerados")
+    top_contas = df_filtrado[df_filtrado["Faltas"] == 1].groupby("Conta_Exibicao")["SKU"].count().reset_index(name="SKUs Zerados")
+    st.plotly_chart(px.bar(top_contas, x="SKUs Zerados", y="Conta_Exibicao", orientation="h"), use_container_width=True)
+
     st.markdown("### 📄 Tabela Geral")
     st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], use_container_width=True, height=400)
 
 with tabs[1]:
     st.markdown("## 📈 Histórico de Faltas")
-    st.plotly_chart(px.line(df_historico, x="Data", y="Total Faltas", markers=True), use_container_width=True)
+    col_h1, col_h2 = st.columns(2)
+    data_inicio = col_h1.date_input("Data inicial", value=datetime.today())
+    data_fim = col_h2.date_input("Data final", value=datetime.today())
+    df_periodo = df_historico[(df_historico["Data"] >= pd.to_datetime(data_inicio)) & (df_historico["Data"] <= pd.to_datetime(data_fim))]
+    st.plotly_chart(px.line(df_periodo, x="Data", y="Total Faltas", markers=True), use_container_width=True)
 
 with tabs[2]:
     st.markdown("## 🚨 Alertas")
@@ -160,10 +165,15 @@ with tabs[2]:
     st.write("🔴 Contas com 50+ faltas:")
     st.dataframe(alertas)
 
+    st.write("🟠 SKUs com falta em 5+ contas:")
+    skus_alerta = df_long[df_long["Faltas"] == 1].groupby("SKU")["Conta_Exibicao"].count().reset_index(name="Contas com Falta")
+    st.dataframe(skus_alerta[skus_alerta["Contas com Falta"] >= 5])
+
 with tabs[3]:
     st.markdown("## 📤 Exportações")
     st.download_button("⬇️ Baixar Faltas", df_faltas.to_csv(index=False).encode("utf-8"), file_name="faltas.csv")
     st.download_button("⬇️ Baixar Tabela Geral", df_long.to_csv(index=False).encode("utf-8"), file_name="detalhado.csv")
+    st.download_button("⬇️ Baixar Histórico", df_historico.to_csv(index=False).encode("utf-8"), file_name="historico.csv")
 
 with tabs[4]:
     st.markdown("## 📂 Base Criados")
@@ -179,6 +189,11 @@ with tabs[5]:
     if sku:
         resultado = df_long[df_long["SKU"].str.contains(sku, case=False, na=False)]
         st.dataframe(resultado)
+
+    if st.button("🗑️ Limpar histórico local"):
+        if os.path.exists(historico_path):
+            os.remove(historico_path)
+            st.success("Histórico deletado com sucesso!")
 
 with tabs[6]:
     st.markdown("## 👤 Perfil")
