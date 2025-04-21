@@ -176,7 +176,7 @@ usuario_local = getpass.getuser()
 tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"])
 
 with tabs[0]:
-if not df_long.empty and "Conta_Exibicao" in df_long.columns:
+    if not df_long.empty and "Conta_Exibicao" in df_long.columns:
     contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
     conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard")
     df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
