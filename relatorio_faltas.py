@@ -189,15 +189,24 @@ with tabs[0]:
             unsafe_allow_html=True
         )
         fcol1, fcol2 = st.columns(2)
-        conta_sel = fcol1.selectbox(
-            "📁 Filtrar por Conta",
-            ["Todas"] + sorted(df_long["Conta_Exibicao"].unique()),
-            key="filtro_conta"
-        )
-        marca_sel = fcol2.selectbox(
-            "🏷️ Filtrar por Marca",
-            ["Todas"] + sorted(df_long["Marca"].dropna().unique()),
-            key="filtro_marca"
+       contas_opts = ["Todas"] + sorted(
+    df_long["Conta_Exibicao"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+)
+conta_sel = fcol1.selectbox("📁 Filtrar por Conta", contas_opts, key="filtro_conta")
+
+marcas_opts = ["Todas"] + sorted(
+    df_long["Marca"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+)
+marca_sel = fcol2.selectbox("🏷️ Filtrar por Marca", marcas_opts, key="filtro_marca")
+
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
