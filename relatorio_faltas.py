@@ -1,5 +1,5 @@
 # Arquivo: dashboard_faltas_final.py
-# Autor: Jair Jales – Versão Profissional Enxuta e Corrigida com Animações
+# Autor: Jair Jales – Versão Profissional Enxuta e Corrigida
 
 import streamlit as st
 import pandas as pd
@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ===== CSS GLOBAL (fundo, caixas, botões e abas com animações) =====
+# ===== CSS GLOBAL (fundo, caixas translúcidas, botões e abas animados) =====
 def load_css(image_path):
     img_b64 = base64.b64encode(open(image_path, "rb").read()).decode()
     st.markdown(f"""
@@ -42,46 +42,44 @@ def load_css(image_path):
     h1,h2,h3,h4,h5,h6,p,label,span {{
         color: white !important;
     }}
-    /* Botões */
+    /* Botões gerais */
     .stButton > button {{
         background: linear-gradient(90deg,#235C9B,#012C4E) !important;
         color: white !important;
         font-weight: bold !important;
         border-radius: 12px !important;
-        transition: all 0.3s ease-in-out;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }}
     .stButton > button:hover {{
-        background: linear-gradient(90deg,#3D8BFF,#235C9B) !important;
         transform: scale(1.05);
-        box-shadow: 0 6px 20px rgba(80,191,255,0.4);
+        box-shadow: 0 0 12px #50BFFF;
     }}
-    /* Abas com animações */
+    /* Abas animadas */
     .stTabs [data-baseweb="tab"] {{
         font-size: 20px !important;
         padding: 16px 32px !important;
         font-weight: bold !important;
         color: white !important;
+        border-radius: 10px 10px 0 0 !important;
         background-color: rgba(255,255,255,0.06) !important;
-        transition: all 0.3s ease-in-out;
-    }}
-    .stTabs [aria-selected="true"] {{
-        background-color: rgba(255,255,255,0.25) !important;
-        border-bottom: 4px solid #50BFFF !important;
-        transform: scale(1.05);
+        transition: transform 0.3s ease, background-color 0.3s ease;
     }}
     .stTabs [data-baseweb="tab"]:hover {{
-        background-color: rgba(255,255,255,0.15) !important;
-        cursor: pointer;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        background-color: rgba(255,255,255,0.15) !important;
     }}
-    /* Cards informativos com animação */
+    .stTabs [aria-selected="true"] {{
+        transform: scale(1.05);
+        background-color: rgba(255,255,255,0.25) !important;
+        border-bottom: 4px solid #50BFFF !important;
+    }}
+    /* Cards informativos */
     .custom-card {{
         background-color: rgba(255,255,255,0.07);
         padding: 20px;
         border-radius: 15px;
         text-align: center;
-        transition: all 0.3s ease-in-out;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }}
     .custom-card:hover {{
@@ -106,42 +104,49 @@ with col2:
 
 # ===== CAMINHO DA PLANILHA EDITÁVEL =====
 st.markdown("📁 **Caminho da planilha sincronizada:**")
-c_path, c_btn = st.columns([5,1])
-planilha = c_path.text_input(
-    "",
+planilha = st.text_input(
+    "", 
     value=st.session_state.get("input_path", "planilhas/FALTAS MERCADO LIVRE 2025.xlsx"),
     key="input_path"
 )
-if c_btn.button("🔄 Atualizar", key="btn_refresh"):
-    st.experimental_rerun()
+# ao mudar o text_input, o Streamlit já re-executa o script
 
 if not os.path.isfile(planilha):
     st.error("Caminho inválido. Verifique a localização do arquivo.")
     st.stop()
 
-# ===== LEITURA E PROCESSAMENTO =====
+# ===== LEITURA E TRANSFORMAÇÃO DOS DADOS =====
 try:
     df_raw = pd.read_excel(planilha, sheet_name="Geral", header=[4,5], dtype=str)
     df_det = pd.read_excel(planilha, sheet_name="Geral", header=5, dtype=str)
     df_base = pd.read_excel(planilha, sheet_name="Base Criados", header=2, dtype=str)
 
-    # faltas por conta
+    # Faltas por conta
     contas, faltas = [], []
     for v, n in df_raw.columns[4:]:
         if isinstance(n, str) and str(v).isdigit():
             contas.append(n.split('.')[0].strip().upper())
             faltas.append(int(v))
-    df_faltas = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas}).drop_duplicates("Conta_Exibicao")
+    df_faltas = pd.DataFrame({
+        "Conta_Exibicao": contas,
+        "Faltas": faltas
+    }).drop_duplicates("Conta_Exibicao")
 
-    # detalhado (long)
+    # Detalhado (long)
     cols = df_det.columns[4:]
     df_long = df_det.melt(
         id_vars=["SKU","Estoque","Marca","Titulo"],
         value_vars=cols,
         var_name="Conta", value_name="Check"
     )
-    df_long["Conta_Exibicao"] = df_long["Conta"].str.split(".").str[0].str.upper().str.strip()
-    df_long["Faltas"] = df_long["Check"].fillna("0").apply(lambda x: 1 if str(x).strip()=="0" else 0)
+    df_long["Conta_Exibicao"] = (
+        df_long["Conta"].str.split(".").str[0]
+                 .str.upper().str.strip()
+    )
+    df_long["Faltas"] = (
+        df_long["Check"].fillna("0")
+                 .apply(lambda x: 1 if str(x).strip()=="0" else 0)
+    )
 
 except Exception as e:
     st.error(f"Erro ao processar a planilha: {e}")
@@ -149,7 +154,7 @@ except Exception as e:
 
 # ===== HISTÓRICO =====
 hist_path = "historico_faltas.csv"
-hoje = datetime.today().strftime('%Y-%m-%d')
+hoje = datetime.today().strftime("%Y-%m-%d")
 tot_hoje = int(df_faltas["Faltas"].sum())
 
 if os.path.exists(hist_path):
@@ -168,8 +173,8 @@ user = getpass.getuser()
 
 # ===== ABAS =====
 tabs = st.tabs([
-    "📊 Dashboard Geral","📈 Histórico","🚨 Alertas",
-    "📥 Exportações","📂 Base Criados","⚙️ Configurações","👤 Perfil"
+    "📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas",
+    "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"
 ])
 
 # --- TAB 0: Dashboard Geral ---
@@ -177,76 +182,76 @@ with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
     else:
-        # métricas
+        # cards informativos
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
-        semana = (datetime.now(tz) - timedelta(days=7)).strftime("%Y-%m-%d")
-        prev = df_hist.loc[df_hist["Data"]==semana, "Total Faltas"].sum()
-        diff = tot_hoje - prev
-        pct = (diff/prev*100) if prev>0 else 0
-        emoji = "🔺" if pct>0 else "✅"
-        msg_sem = f"{emoji} {'Aumento' if pct>0 else 'Redução'} de {abs(pct):.1f}% desde semana passada"
-
-        imp = df_long[df_long["Faltas"]==1].groupby("SKU")["Conta_Exibicao"].count().reset_index(name="Qtd").sort_values("Qtd",ascending=False)
-        msg_imp = f"⚠️ SKU {imp.iloc[0]['SKU']} em falta em {imp.iloc[0]['Qtd']} contas" if not imp.empty else "✅ Nenhum SKU crítico hoje"
-
-        skus_hj = df_long[df_long["Faltas"]==1]["SKU"].nunique()
-        msg_skus = f"🆕 {skus_hj} SKUs com falta hoje"
-
-        # cards
         st.markdown(f"""
         <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
-          <div class='custom-card'><h3>📦 Total de Faltas</h3><p style='font-size:26px;font-weight:bold;'>{tot_hoje}</p></div>
-          <div class='custom-card'><h3>🏬 Contas Ativas</h3><p style='font-size:26px;font-weight:bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p></div>
-          <div class='custom-card'><h3>📅 Atualização</h3><p style='font-size:20px;font-weight:bold;'>{now}</p></div>
-        </div>
-        <div style='margin-bottom:30px;color:white;'>
-          <h4>🔔 Alertas:</h4>
-          <ul style='font-size:16px;'>
-            <li>{msg_sem}</li>
-            <li>{msg_imp}</li>
-            <li>{msg_skus}</li>
-          </ul>
+          <div class='custom-card'>
+            <h3>📦 Total de Faltas</h3>
+            <p style='font-size:26px;font-weight:bold;'>{tot_hoje}</p>
+          </div>
+          <div class='custom-card'>
+            <h3>🏬 Contas Ativas</h3>
+            <p style='font-size:26px;font-weight:bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p>
+          </div>
+          <div class='custom-card'>
+            <h3>📅 Atualização</h3>
+            <p style='font-size:20px;font-weight:bold;'>{now}</p>
+          </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # filtros lado a lado
+        # filtros lado a lado (conta + marca)
         st.markdown(
-            "<div style='background-color:rgba(255,255,255,0.07);padding:20px;border-radius:15px;margin-bottom:20px;'>",
+            "<div style='background-color:rgba(255,255,255,0.07);"
+            "padding:20px;border-radius:15px;margin-bottom:20px;'>",
             unsafe_allow_html=True
         )
-        fcol1,fcol2 = st.columns(2)
+        f1, f2 = st.columns(2)
         contas_opts = ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().astype(str).unique().tolist())
         marcas_opts = ["Todas"] + sorted(df_long["Marca"].dropna().astype(str).unique().tolist())
-        conta_sel = fcol1.selectbox("📁 Filtrar por Conta", contas_opts, key="filtro_conta")
-        marca_sel = fcol2.selectbox("🏷️ Filtrar por Marca", marcas_opts, key="f filtro_marca")
+        conta_sel = f1.selectbox("📁 Filtrar por Conta", contas_opts, key="filtro_conta")
+        marca_sel = f2.selectbox("🏷️ Filtrar por Marca", marcas_opts, key="filtro_marca")
         st.markdown("</div>", unsafe_allow_html=True)
 
         # aplica filtros
         df_fil = df_long.copy()
-        if conta_sel!="Todas": df_fil = df_fil[df_fil["Conta_Exibicao"]==conta_sel]
-        if marca_sel!="Todas": df_fil = df_fil[df_fil["Marca"]==marca_sel]
+        if conta_sel != "Todas":
+            df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
+        if marca_sel != "Todas":
+            df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
-        # gráfico contas filtras
+        # gráfico de faltas por conta (com filtro aplicado)
         st.markdown("### 📊 Faltas por Conta")
-        g1 = px.bar(df_fil.groupby("Conta_Exibicao")["Faltas"].sum().reset_index().sort_values("Faltas"),
-                    x="Faltas", y="Conta_Exibicao", orientation="h", color="Faltas", text="Faltas")
-        g1.update_layout(plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
+        g1 = px.bar(
+            df_fil.groupby("Conta_Exibicao")["Faltas"].sum().reset_index().sort_values("Faltas"),
+            x="Faltas", y="Conta_Exibicao", orientation="h",
+            color="Faltas", text="Faltas"
+        )
+        g1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
         g1.update_traces(textposition="outside")
-        st.plotly_chart(g1,use_container_width=True,key="g_contas")
+        st.plotly_chart(g1, use_container_width=True, key="g_contas")
 
-        # gráfico marcas filtradas
+        # gráfico top marcas
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
-        top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas",ascending=False).head(10)
-        g2 = px.bar(top_m,x="Faltas",y="Marca",orientation="h",color="Faltas",text="Faltas")
-        g2.update_layout(plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
+        top_m = (
+            df_fil.groupby("Marca")["Faltas"]
+            .sum().reset_index()
+            .sort_values("Faltas", ascending=False)
+            .head(10)
+        )
+        g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
+        g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
         g2.update_traces(textposition="outside")
-        st.plotly_chart(g2,use_container_width=True,key="g_marcas")
-        
+        st.plotly_chart(g2, use_container_width=True, key="g_marcas")
+
         # tabela detalhada
         st.markdown("### 📋 Tabela Geral de Dados")
-        st.dataframe(df_fil[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]],
-                     use_container_width=True, height=400)
+        st.dataframe(
+            df_fil[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]],
+            use_container_width=True, height=400
+        )
 
 # --- TAB 1: Histórico ---
 with tabs[1]:
@@ -254,7 +259,7 @@ with tabs[1]:
     d1, d2 = st.columns(2)
     ini = d1.date_input("De", datetime.today(), key="h_ini")
     fim = d2.date_input("Até", datetime.today(), key="h_fim")
-    df_p = df_hist[(df_hist["Data"]>=pd.to_datetime(ini)) & (df_hist["Data"]<=pd.to_datetime(fim))]
+    df_p = df_hist[(df_hist["Data"] >= pd.to_datetime(ini)) & (df_hist["Data"] <= pd.to_datetime(fim))]
     gh = px.line(df_p, x="Data", y="Total Faltas", markers=True)
     st.plotly_chart(gh, use_container_width=True, key="g_hist")
 
@@ -264,10 +269,12 @@ with tabs[2]:
     st.subheader("🔴 Contas com 50+ faltas")
     st.dataframe(df_faltas.query("Faltas>=50"), use_container_width=True)
     st.subheader("🟠 SKUs em 5+ contas")
-    sa = (df_long[df_long["Faltas"]==1]
-          .groupby("SKU")["Conta_Exibicao"]
-          .count().reset_index(name="Contas")
-          .query("Contas>=5"))
+    sa = (
+        df_long[df_long["Faltas"]==1]
+        .groupby("SKU")["Conta_Exibicao"]
+        .count().reset_index(name="Contas")
+        .query("Contas>=5")
+    )
     st.dataframe(sa, use_container_width=True)
 
 # --- TAB 3: Exportações ---
@@ -275,7 +282,7 @@ with tabs[3]:
     st.markdown("## 📥 Exportações")
     st.download_button("⬇️ Faltas por Conta", df_faltas.to_csv(index=False).encode(), file_name="faltas.csv", key="e1")
     st.download_button("⬇️ Detalhado por SKU", df_long.to_csv(index=False).encode(), file_name="detalhado.csv", key="e2")
-    st.download_button("⬇️ Histórico", df_hist.to_csv(index=False).encode(), file_name="historico.csv", key="e3")
+    st.download_button("⬇️ Histórico", df_hist.to_csv(index=False).encode(), file_name="hist.csv", key="e3")
 
 # --- TAB 4: Base Criados ---
 with tabs[4]:
@@ -291,8 +298,10 @@ with tabs[5]:
     st.markdown("## ⚙️ Configurações")
     sku_search = st.text_input("🔍 Buscar SKU", key="cfg_sku")
     if sku_search:
-        st.dataframe(df_long[df_long["SKU"].str.contains(sku_search, case=False, na=False)],
-                     use_container_width=True)
+        st.dataframe(
+            df_long[df_long["SKU"].str.contains(sku_search, case=False, na=False)],
+            use_container_width=True
+        )
     if st.button("🗑️ Limpar histórico", key="cfg_clear"):
         if os.path.exists(hist_path):
             os.remove(hist_path)
