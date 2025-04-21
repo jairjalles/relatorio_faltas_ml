@@ -236,8 +236,8 @@ with tabs[1]:
         st.stop()
 
     # Converte para datetime.date com fallback caso o valor seja NaT
-    data_max_ts = df_hist["Data"].max()
-    data_min_ts = df_hist["Data"].min()
+    data_max = pd.to_datetime(data_max_ts).date() if not pd.isna(data_max_ts) else datetime.today().date()
+    data_min = pd.to_datetime(data_min_ts).date() if not pd.isna(data_min_ts) else (datetime.today() - timedelta(days=7)).date()
 
     if pd.isna(data_max_ts) or pd.isna(data_min_ts):
         st.warning("Datas inválidas no histórico.")
