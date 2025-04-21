@@ -202,7 +202,7 @@ with tabs[0]:
         g1.update_layout(
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
-            height=600  # 👈 aumenta o tamanho do gráfico
+            height=1000  # 👈 aumenta o tamanho do gráfico
         )
         g1.update_traces(textposition="outside")
         st.plotly_chart(g1, use_container_width=True, key="g_contas")
