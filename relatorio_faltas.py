@@ -106,6 +106,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+set_background("fundo_interface.jpeg")
+
 # ===== LOGO + TITULO =====
 col_logo, col_title = st.columns([1, 5])
 with col_logo:
