@@ -186,12 +186,12 @@ with tabs[0]:
         if marca_sel != "Todas":
             df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
-        st.markdown("### 📊 Faltas por Conta")
+    st.markdown("### 📊 Faltas por Conta")
 
 try:
     df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
-    linha_faltas = df_raw_sem_header.iloc[4, 4:]  # linha 5 (índice 4)
-    cabecalhos = df_raw_sem_header.iloc[5, 4:]    # linha 6 (índice 5)
+    linha_faltas = df_raw_sem_header.iloc[4, 4:]
+    cabecalhos = df_raw_sem_header.iloc[5, 4:]
 
     contas, faltas = [], []
     for val, conta in zip(linha_faltas, cabecalhos):
@@ -201,34 +201,30 @@ try:
 
     df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
 
-    # GRÁFICO COM ESTILO ANIMADO
-    graf_faltas = px.bar(
+    g1 = px.bar(
         df_faltas_corrigido.sort_values("Faltas", ascending=True),
         x="Faltas", y="Conta_Exibicao", orientation="h",
-        color="Faltas", text="Faltas",
-        title="📊 Faltas por Conta"
+        color="Faltas", text="Faltas"
     )
 
-    graf_faltas.update_layout(
-        plot_bgcolor="rgba(255, 255, 255, 0.15)",  # Fundo branco translúcido
-        paper_bgcolor="rgba(255, 255, 255, 0.15)",
-        height=700,
-        margin=dict(l=80, r=40, t=60, b=40),
-        title_font_size=22,
-        title_x=0.5,
-        xaxis=dict(title="", showgrid=False),
-        yaxis=dict(title="", showgrid=False)
+    g1.update_layout(
+        plot_bgcolor="rgba(255,255,255,0.05)",  # fundo branco translúcido
+        paper_bgcolor="rgba(255,255,255,0.05)",
+        transition_duration=500,
+        height=650,
+        margin=dict(l=20, r=20, t=40, b=20)
     )
 
-    graf_faltas.update_traces(
-        marker_line_width=1,
-        marker_line_color="white",
+    g1.update_traces(
         textposition="outside",
-        hoverlabel=dict(bgcolor="white", font_size=14),
+        texttemplate="%{text}",
+        marker=dict(line=dict(width=0)),
+        hoverinfo="x+y",
         selector=dict(type="bar")
     )
 
-    st.plotly_chart(graf_faltas, use_container_width=True, key="graf_faltas_animated")
+    st.plotly_chart(g1, use_container_width=True, key="graf_faltas")
+
 except Exception as erro:
     st.error(f"Erro ao gerar gráfico: {erro}")
 
