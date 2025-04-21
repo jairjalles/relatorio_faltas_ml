@@ -56,13 +56,12 @@ with col_title:
     """, unsafe_allow_html=True)
 
 # ===== CAMINHO DO ARQUIVO =====
-st.markdown("📁 **Caminho da planilha sincronizada no OneDrive:**")
 col_path, col_btn = st.columns([5, 1])
-caminho = col_path.text_input("", value="C:/Users/Jair Jales/OneDrive - Top Shop/BASE/FALTAS MERCADO LIVRE 2025 - Copia.xlsx")
+caminho = col_path.text_input("planilhas/", value="planilhas/FALTAS MERCADO LIVRE 2025.xlsx")
 atualizar = col_btn.button("🔄 Atualizar")
 
-if not os.path.exists(caminho):
-    st.error("Caminho inválido. Verifique se a planilha está sincronizada no OneDrive.")
+if not os.path.isfile(caminho):
+    st.error("Caminho inválido. Verifique se a planilha está presente na pasta 'planilhas/' do projeto.")
     st.stop()
 
 try:
