@@ -1,3 +1,4 @@
+# ====================== INÍCIO DO CÓDIGO ======================
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -30,7 +31,6 @@ def load_css(image_path):
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        transition: all 0.4s ease-in-out;
     }}
     h1,h2,h3,h4,h5,h6,p,label,span {{
         color: white !important;
@@ -40,41 +40,10 @@ def load_css(image_path):
         color: white !important;
         font-weight: bold !important;
         border-radius: 12px !important;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }}
     .stButton > button:hover {{
         transform: scale(1.05);
         box-shadow: 0 0 12px #50BFFF;
-    }}
-    .stTabs [data-baseweb="tab"] {{
-        font-size: 20px !important;
-        padding: 16px 32px !important;
-        font-weight: bold !important;
-        color: white !important;
-        border-radius: 10px 10px 0 0 !important;
-        background-color: rgba(255,255,255,0.06) !important;
-        transition: transform 0.3s ease, background-color 0.3s ease;
-    }}
-    .stTabs [data-baseweb="tab"]:hover {{
-        transform: translateY(-2px);
-        background-color: rgba(255,255,255,0.15) !important;
-    }}
-    .stTabs [aria-selected="true"] {{
-        transform: scale(1.05);
-        background-color: rgba(255,255,255,0.25) !important;
-        border-bottom: 4px solid #50BFFF !important;
-    }}
-    .custom-card {{
-        background-color: rgba(255,255,255,0.07);
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }}
-    .custom-card:hover {{
-        transform: scale(1.03);
-        box-shadow: 0 6px 20px rgba(80,191,255,0.4);
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -121,7 +90,6 @@ try:
         var_name="Conta", value_name="Check"
     )
     df_long["Conta_Exibicao"] = df_long["Conta"].str.split(".").str[0].str.upper().str.strip()
-
     df_long = df_long.merge(df_base_long.drop_duplicates(), on=["SKU", "Conta_Exibicao"], how="left", indicator="_base_")
     df_long = df_long.query("_base_ == 'left_only'").drop(columns="_base_")
     df_long["Faltas"] = df_long["Check"].fillna("0").apply(lambda x: 1 if str(x).strip() == "0" else 0)
@@ -179,50 +147,36 @@ with tabs[0]:
             df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
         if marca_sel != "Todas":
             df_fil = df_fil[df_fil["Marca"] == marca_sel]
-    # GRÁFICO DE FALTAS POR CONTA — leitura direta da linha 5 da planilha
-    st.markdown("### 📊 Faltas por Conta")
-    try:
-        df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
-        linha_faltas = df_raw_sem_header.iloc[4, 4:]  # linha 5 (índice 4), colunas a partir de E
-        cabecalhos = df_raw_sem_header.iloc[5, 4:]    # linha 6 (índice 5), nomes das contas
 
-        contas, faltas = [], []
-        for val, conta in zip(linha_faltas, cabecalhos):
-            if pd.notna(val) and str(val).isdigit():
-                contas.append(str(conta).strip().upper())
-                faltas.append(int(val))
+        st.markdown("### 📊 Faltas por Conta")
+        try:
+            df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
+            linha_faltas = df_raw_sem_header.iloc[4, 4:]
+            cabecalhos = df_raw_sem_header.iloc[5, 4:]
+            contas, faltas = [], []
+            for val, conta in zip(linha_faltas, cabecalhos):
+                if pd.notna(val) and str(val).isdigit():
+                    contas.append(str(conta).strip().upper())
+                    faltas.append(int(val))
+            df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
+            g1 = px.bar(df_faltas_corrigido.sort_values("Faltas", ascending=True),
+                        x="Faltas", y="Conta_Exibicao", orientation="h",
+                        color="Faltas", text="Faltas")
+            g1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", height=1000)
+            g1.update_traces(textposition="outside")
+            st.plotly_chart(g1, use_container_width=True, key="g_contas")
+        except Exception as erro:
+            st.error(f"Erro ao gerar gráfico: {erro}")
 
-        df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
+        st.markdown("### 🏷️ Top Marcas com mais Faltas")
+        top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
+        g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
+        g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+        g2.update_traces(textposition="outside")
+        st.plotly_chart(g2, use_container_width=True, key="g_marcas")
 
-        g1 = px.bar(
-            df_faltas_corrigido.sort_values("Faltas", ascending=True),
-            x="Faltas", y="Conta_Exibicao", orientation="h",
-            color="Faltas", text="Faltas"
-        )
-        g1.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            height=1000  # 👈 aumenta o tamanho do gráfico
-        )
-        g1.update_traces(textposition="outside")
-
-    except Exception as erro:
-        st.error(f"Erro ao gerar gráfico: {erro}")
-
-    # gráfico marcas filtradas (fora do try/except!)
-    st.markdown("### 🏷️ Top Marcas com mais Faltas")
-    top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
-    g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
-    g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-    g2.update_traces(textposition="outside")
-    st.plotly_chart(g2, use_container_width=True, key="g_marcas")
-
-    # ==== TABELA DETALHADA ====
-    st.markdown("### 📋 Tabela Geral de Dados")
-    st.dataframe(
-        df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
-        height=400, use_container_width=True
-    )
+        st.markdown("### 📋 Tabela Geral de Dados")
+        st.dataframe(df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], height=400, use_container_width=True)
 
 # --- TAB 1: Histórico ---
 with tabs[1]:
