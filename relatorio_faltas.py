@@ -143,8 +143,16 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
     
-st.markdown("📁 **Caminho da planilha sincronizada:**")
-planilha = st.text_input("", value=st.session_state.get("input_path", "planilhas/FALTAS MERCADO LIVRE 2025.xlsx"), key="input_path")
+st.markdown("### ")
+
+with st.container():
+    col1, col2 = st.columns([0.25, 0.75])  # Ajuste proporcional da largura (0.75 vai até perto da aba "Perfil")
+
+    with col1:
+        st.markdown("<span style='font-weight:bold;font-size:16px;'>📁 Caminho da planilha sincronizada:</span>", unsafe_allow_html=True)
+
+    with col2:
+        planilha = st.text_input("", value=st.session_state.get("input_path", "planilhas/FALTAS MERCADO LIVRE 2025 - Copia.xlsx"), key="input_path")
 
 if not os.path.isfile(planilha):
     st.error("Caminho inválido. Verifique a localização do arquivo.")
