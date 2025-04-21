@@ -186,7 +186,7 @@ with tabs[0]:
        df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
        linha_faltas = df_raw_sem_header.iloc[4, 4:]  # linha 5 (índice 4), colunas a partir de E
        cabecalhos = df_raw_sem_header.iloc[5, 4:]    # linha 6 (índice 5), nomes das contas
-        contas, faltas = [], []
+       contas, faltas = [], []
         for val, conta in zip(linha_faltas, cabecalhos):
             if pd.notna(val) and str(val).isdigit():
                 contas.append(str(conta).strip().upper())
