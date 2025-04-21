@@ -252,23 +252,70 @@ with tabs[0]:
         conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard")
         df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
 
-        # ==== CARDS ====
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-                <div style='background-color: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
-                    <h3>📦 Total de Faltas</h3>
-                    <p style='font-size: 26px; font-weight: bold;'>{}</p>
-                </div>
-            """.format(int(df_faltas["Faltas"].sum())), unsafe_allow_html=True)
+        # Hora com fuso do Brasil
+        fuso_br = pytz.timezone("America/Sao_Paulo")
+        agora = datetime.now(fuso_br)
+        ultima_atualizacao = agora.strftime("%d/%m/%Y %H:%M")
 
-        with col2:
-            st.markdown("""
-                <div style='background-color: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
-                    <h3>🏬 Contas Ativas</h3>
-                    <p style='font-size: 26px; font-weight: bold;'>{}</p>
+        # Comparativo semanal
+        semana_passada = (agora - timedelta(days=7)).strftime("%Y-%m-%d")
+        faltas_atuais = int(df_faltas["Faltas"].sum())
+        faltas_anteriores = df_historico[df_historico["Data"] == semana_passada]["Total Faltas"].sum()
+        diferenca = faltas_atuais - faltas_anteriores
+        percentual = (diferenca / faltas_anteriores * 100) if faltas_anteriores > 0 else 0
+
+        # Emojis de alerta
+        emoji_variacao = "🔺" if percentual > 0 else "✅"
+        mensagem_semana = f"{emoji_variacao} {'Aumento' if percentual > 0 else 'Redução'} de {abs(percentual):.1f}% nas faltas desde a semana passada"
+
+        # SKU com maior impacto
+        sku_impacto = df_long[df_long["Faltas"] == 1].groupby("SKU")["Conta_Exibicao"].count().reset_index(name="Qtd Contas")
+        sku_top = sku_impacto.sort_values("Qtd Contas", ascending=False).head(1)
+
+        if not sku_top.empty:
+            sku_maior_impacto = sku_top.iloc[0]["SKU"]
+            qtd_impacto = sku_top.iloc[0]["Qtd Contas"]
+            impacto_mensagem = f"⚠️ SKU <a href='#' onclick=\"window.location.href=window.location.href+'?sku={sku_maior_impacto}'\">{sku_maior_impacto}</a> aparece com falta em {qtd_impacto} contas"
+        else:
+            impacto_mensagem = "✅ Nenhum SKU com alto impacto detectado hoje"
+
+        # Quantidade de SKUs únicos com falta hoje
+        skus_com_falta_hoje = df_long[df_long["Faltas"] == 1]["SKU"].nunique()
+        alerta_skus = f"🆕 {skus_com_falta_hoje} SKU{'s' if skus_com_falta_hoje > 1 else ''} com faltas identificadas hoje"
+
+        # Bloco visual com cards e alertas
+        st.markdown(f"""
+            <div style='display:flex; flex-direction:column; gap:20px; padding:20px; background-color:rgba(255,255,255,0.07); 
+                        border-radius:16px; margin-top:15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); backdrop-filter:blur(6px);'>
+
+                <div style='display: flex; justify-content: space-between; flex-wrap: wrap;'>
+
+                    <div style='flex: 1; min-width:250px; background: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
+                        <h3>📦 Total de Faltas</h3>
+                        <p style='font-size: 26px; font-weight: bold; color: white;'>{faltas_atuais}</p>
+                    </div>
+
+                    <div style='flex: 1; min-width:250px; background: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
+                        <h3>🏬 Contas Ativas</h3>
+                        <p style='font-size: 26px; font-weight: bold; color: white;'>{df_faltas["Conta_Exibicao"].nunique()}</p>
+                    </div>
+
+                    <div style='flex: 1; min-width:250px; background: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
+                        <h3>📅 Última Atualização</h3>
+                        <p style='font-size: 20px; font-weight: bold; color: white;'>{ultima_atualizacao}</p>
+                    </div>
                 </div>
-            """.format(df_faltas["Conta_Exibicao"].nunique()), unsafe_allow_html=True)
+
+                <div style='margin-top:20px; color:white;'>
+                    <h4>🔔 Alertas do Sistema:</h4>
+                    <ul style='font-size: 16px;'>
+                        <li>{mensagem_semana}</li>
+                        <li>{impacto_mensagem}</li>
+                        <li>{alerta_skus}</li>
+                    </ul>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
         # ==== GRÁFICO DE CONTAS ====
         st.markdown("### 📊 Faltas por Conta")
@@ -292,7 +339,6 @@ with tabs[0]:
         st.markdown("### 📋 Tabela Geral de Dados")
         st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
                      use_container_width=True, height=400)
-
     else:
         st.warning("Nenhum dado disponível para exibir.")
 
