@@ -229,19 +229,19 @@ try:
     )
 
     st.plotly_chart(graf_faltas, use_container_width=True, key="graf_faltas_animated")
-
 except Exception as erro:
     st.error(f"Erro ao gerar gráfico: {erro}")
 
-    st.markdown("### 🏷️ Top Marcas com mais Faltas")
-        top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
-        g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
-        g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-        g2.update_traces(textposition="outside")
-        st.plotly_chart(g2, use_container_width=True, key="g_marcas")
+# Este trecho deve estar fora do bloco `except` para não depender do erro
+st.markdown("### 🏷️ Top Marcas com mais Faltas")
+top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
+g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
+g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+g2.update_traces(textposition="outside")
+st.plotly_chart(g2, use_container_width=True, key="g_marcas")
 
-        st.markdown("### 📋 Tabela Geral de Dados")
-        st.dataframe(df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], height=400, use_container_width=True)
+st.markdown("### 📋 Tabela Geral de Dados")
+st.dataframe(df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], height=400, use_container_width=True)
 
 # --- TAB 1: Histórico ---
 with tabs[1]:
