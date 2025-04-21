@@ -246,6 +246,12 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
+with tabs[0]:
+    if not df_long.empty and "Conta_Exibicao" in df_long.columns:
+        contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
+        conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard")
+        df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
+
         # ==== CARDS ====
         col1, col2 = st.columns(2)
         with col1:
@@ -285,7 +291,7 @@ st.markdown(f"""
         # ==== TABELA DETALHADA ====
         st.markdown("### 📋 Tabela Geral de Dados")
         st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
-                    use_container_width=True, height=400)
+                     use_container_width=True, height=400)
 
     else:
         st.warning("Nenhum dado disponível para exibir.")
