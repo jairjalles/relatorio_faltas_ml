@@ -174,99 +174,100 @@ usuario_local = getpass.getuser()
 
 # ===== ABAS =====
 tabs = st.tabs([
-    "📊 Dashboard Geral",
-    "📈 Histórico",
-    "🚨 Alertas",
-    "📥 Exportações",
-    "📂 Base Criados",
-    "⚙️ Configurações",
-    "👤 Perfil"
+    "📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas",
+    "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"
 ])
 
-# === ABA 0: Dashboard Geral ===
 with tabs[0]:
-    if not df_long.empty and "Conta_Exibicao" in df_long.columns:
-        # filtro único
-        contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
-        conta_filtro = st.selectbox(
-            "📁 Filtrar por Conta",
-            ["Todas"] + contas_unicas,
-            key="filtro_conta_dashboard"
-        )
-        df_filtrado = (
-            df_long
-            if conta_filtro=="Todas"
-            else df_long[df_long["Conta_Exibicao"]==conta_filtro]
-        )
+    if df_long.empty or "Conta_Exibicao" not in df_long.columns:
+        st.warning("Nenhum dado disponível para exibir.")
+    else:
+        # ==== Dados completos, sem filtro por conta ====
+        df_filtrado = df_long.copy()
 
-        # cálculos de alertas e timestamps
+        # Hora com fuso do Brasil
         fuso_br = pytz.timezone("America/Sao_Paulo")
         agora = datetime.now(fuso_br)
         ultima_atualizacao = agora.strftime("%d/%m/%Y %H:%M")
-        semana_passada = (agora - timedelta(days=7)).strftime("%Y-%m-%d")
-        totais_anteriores = df_historico.loc[
-            df_historico["Data"]==semana_passada, "Total Faltas"
-        ].sum()
-        diferenca = totais_atuais - totais_anteriores
-        percentual = (diferenca / totais_anteriores * 100) if totais_anteriores>0 else 0
-        emoji_variacao = "🔺" if percentual>0 else "✅"
-        mensagem_semana = f"{emoji_variacao} {'Aumento' if percentual>0 else 'Redução'} de {abs(percentual):.1f}% na semana"
-        sku_impacto = (
-            df_long[df_long["Faltas"]==1]
-            .groupby("SKU")["Conta_Exibicao"]
-            .count().reset_index(name="Qtd")
-            .sort_values("Qtd", ascending=False)
-        )
-        if not sku_impacto.empty:
-            top_sku = sku_impacto.iloc[0]
-            impacto_mensagem = f"⚠️ SKU {top_sku['SKU']} com falta em {top_sku['Qtd']} contas"
-        else:
-            impacto_mensagem = "✅ Nenhum SKU de alto impacto hoje"
-        skus_hoje = df_long[df_long["Faltas"]==1]["SKU"].nunique()
-        alerta_skus = f"🆕 {skus_hoje} SKUs com faltas hoje"
 
-        # — cards e alertas —
+        # Comparativo semanal
+        semana_passada = (agora - timedelta(days=7)).strftime("%Y-%m-%d")
+        total_hoje = int(df_faltas["Faltas"].sum())
+        total_anteriores = df_historico.loc[
+            df_historico["Data"] == semana_passada, "Total Faltas"
+        ].sum()
+        diferenca = total_hoje - total_anteriores
+        percentual = (diferenca / total_anteriores * 100) if total_anteriores > 0 else 0
+
+        # Mensagens de alerta
+        emoji_variacao = "🔺" if percentual > 0 else "✅"
+        mensagem_semana = (
+            f"{emoji_variacao} {'Aumento' if percentual > 0 else 'Redução'} "
+            f"de {abs(percentual):.1f}% nas faltas desde a semana passada"
+        )
+
+        sku_impacto = (
+            df_long[df_long["Faltas"] == 1]
+            .groupby("SKU")["Conta_Exibicao"]
+            .count()
+            .reset_index(name="Qtd Contas")
+        )
+        sku_top = sku_impacto.sort_values("Qtd Contas", ascending=False).head(1)
+        if not sku_top.empty:
+            sku_maior = sku_top.iloc[0]["SKU"]
+            qtd_maior = sku_top.iloc[0]["Qtd Contas"]
+            impacto_mensagem = (
+                f"⚠️ SKU {sku_maior} aparece com falta em {qtd_maior} contas"
+            )
+        else:
+            impacto_mensagem = "✅ Nenhum SKU com alto impacto detectado hoje"
+
+        skus_hoje = df_long[df_long["Faltas"] == 1]["SKU"].nunique()
+        alerta_skus = (
+            f"🆕 {skus_hoje} SKU{'s' if skus_hoje > 1 else ''} com faltas identificadas hoje"
+        )
+
+        # ==== CARDS ====
         st.markdown(f"""
-        <div style='display:flex;gap:20px;margin-bottom:20px;'>
-          <div class='custom-card'>
-            <h3>📦 Total de Faltas</h3>
-            <p style='font-size:24px'>{totais_atuais}</p>
-          </div>
-          <div class='custom-card'>
-            <h3>🏬 Contas Ativas</h3>
-            <p style='font-size:24px'>{df_faltas["Conta_Exibicao"].nunique()}</p>
-          </div>
-          <div class='custom-card'>
-            <h3>📅 Última Atualização</h3>
-            <p style='font-size:20px'>{ultima_atualizacao}</p>
-          </div>
+        <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
+            <div class='custom-card'>
+                <h3>📦 Total de Faltas</h3>
+                <p style='font-size:26px;font-weight:bold;'>{total_hoje}</p>
+            </div>
+            <div class='custom-card'>
+                <h3>🏬 Contas Ativas</h3>
+                <p style='font-size:26px;font-weight:bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p>
+            </div>
+            <div class='custom-card'>
+                <h3>📅 Última Atualização</h3>
+                <p style='font-size:20px;font-weight:bold;'>{ultima_atualizacao}</p>
+            </div>
         </div>
         <div style='margin-bottom:30px;color:white;'>
-          <h4>🔔 Alertas do Sistema</h4>
-          <ul>
-            <li>{mensagem_semana}</li>
-            <li>{impacto_mensagem}</li>
-            <li>{alerta_skus}</li>
-          </ul>
+            <h4>🔔 Alertas do Sistema:</h4>
+            <ul style='font-size:16px;'>
+                <li>{mensagem_semana}</li>
+                <li>{impacto_mensagem}</li>
+                <li>{alerta_skus}</li>
+            </ul>
         </div>
         """, unsafe_allow_html=True)
 
-        # — gráfico de conta —
+        # ==== GRÁFICO DE CONTAS ====
         st.markdown("### 📊 Faltas por Conta")
         graf_contas = px.bar(
             df_faltas.sort_values("Faltas"),
-            x="Faltas", y="Conta_Exibicao",
-            orientation="h", color="Faltas", text="Faltas"
+            x="Faltas", y="Conta_Exibicao", orientation="h",
+            color="Faltas", text="Faltas"
         )
-        graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
+        graf_contas.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
+        )
         graf_contas.update_traces(textposition="outside")
-        st.plotly_chart(
-            graf_contas,
-            use_container_width=True,
-            key="chart_contas"
-        )
+        st.plotly_chart(graf_contas, use_container_width=True, key="chart_contas")
 
-        # — gráfico de marcas —
+        # ==== GRÁFICO DE MARCAS ====
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
         top_marcas = (
             df_filtrado.groupby("Marca")["Faltas"]
@@ -275,24 +276,20 @@ with tabs[0]:
             .head(10)
         )
         graf_marcas = px.bar(
-            top_marcas,
-            x="Faltas", y="Marca",
-            orientation="h", color="Faltas", text="Faltas"
+            top_marcas, x="Faltas", y="Marca", orientation="h",
+            color="Faltas", text="Faltas"
         )
-        graf_marcas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
+        graf_marcas.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
+        )
         graf_marcas.update_traces(textposition="outside")
-        st.plotly_chart(
-            graf_marcas,
-            use_container_width=True,
-            key="chart_marcas"
-        )
+        st.plotly_chart(graf_marcas, use_container_width=True, key="chart_marcas")
 
-        # — tabela —
+        # ==== TABELA DETALHADA ====
         st.markdown("### 📋 Tabela Geral de Dados")
         st.dataframe(
-            df_filtrado[
-                ["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]
-            ],
+            df_filtrado[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]],
             use_container_width=True,
             height=400
         )
