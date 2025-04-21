@@ -12,8 +12,7 @@ st.set_page_config(
     layout="wide",
     page_title="Dashboard de Faltas",
     initial_sidebar_state="expanded"
-)
-def load_css(image_path):
+)def load_css(image_path):
     img_b64 = base64.b64encode(open(image_path, "rb").read()).decode()
     st.markdown(f"""
     <style>
@@ -86,7 +85,7 @@ def load_css(image_path):
     }}
     </style>
     """, unsafe_allow_html=True)
-
+    
 st.markdown("📁 **Caminho da planilha sincronizada:**")
 planilha = st.text_input("", value=st.session_state.get("input_path", "planilhas/FALTAS MERCADO LIVRE 2025.xlsx"), key="input_path")
 
