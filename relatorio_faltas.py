@@ -120,7 +120,18 @@ with tabs[0]:
     with col2:
         st.metric("🏢 Contas Ativas", value=f"{df_faltas['Conta_Exibicao'].nunique()}")
 
-    conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].unique()))
+    # ===== FILTROS DINÂMICOS COM PROTEÇÃO =====
+if "Conta_Exibicao" in df_long.columns:
+    contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
+    conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas))
+    if conta_filtro != "Todas":
+        df_filtrado = df_long[df_long["Conta_Exibicao"] == conta_filtro]
+    else:
+        df_filtrado = df_long
+else:
+    st.warning("⚠️ A coluna 'Conta_Exibicao' não foi encontrada na planilha.")
+    df_filtrado = df_long.copy()
+
     marca_filtro = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique()))
 
     df_filtrado = df_long.copy()
