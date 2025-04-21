@@ -22,72 +22,67 @@ def load_css(image_path):
         background-size: cover;
         background-attachment: fixed;
     }}
-
     section.main > div {{
-        background-color: rgba(255, 255, 255, 0.15) !important;
-        border-radius: 15px;
-        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.20) !important;
+        border-radius: 20px;
+        padding: 30px;
         margin-top: 10px;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s ease-in-out;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        transition: all 0.4s ease-in-out;
     }}
-
     h1,h2,h3,h4,h5,h6,p,label,span {{
         color: white !important;
     }}
-
     .stButton > button {{
-        background: linear-gradient(90deg, #235C9B, #012C4E) !important;
+        background: linear-gradient(90deg,#235C9B,#012C4E) !important;
         color: white !important;
         font-weight: bold !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        padding: 0.6em 1.2em !important;
-        font-size: 16px !important;
     }}
-
     .stButton > button:hover {{
         transform: scale(1.05);
         box-shadow: 0 0 12px #50BFFF;
     }}
-
-    .custom-card {{
-        background-color: rgba(255,255,255,0.08);
-        padding: 15px;
-        border-radius: 12px;
-        text-align: center;
-        min-width: 180px;
-        min-height: 90px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }}
-
-    .custom-card:hover {{
-        transform: scale(1.03);
-        box-shadow: 0 6px 18px rgba(80,191,255,0.4);
-    }}
-
     .stTabs [data-baseweb="tab"] {{
         font-size: 18px !important;
-        padding: 14px 26px !important;
+        padding: 12px 24px !important;
         font-weight: bold !important;
         color: white !important;
-        border-radius: 12px 12px 0 0 !important;
+        border-radius: 10px 10px 0 0 !important;
         background-color: rgba(255,255,255,0.06) !important;
         transition: transform 0.3s ease, background-color 0.3s ease;
     }}
-
     .stTabs [data-baseweb="tab"]:hover {{
         transform: translateY(-2px);
         background-color: rgba(255,255,255,0.15) !important;
     }}
-
     .stTabs [aria-selected="true"] {{
-        transform: scale(1.04);
+        transform: scale(1.05);
         background-color: rgba(255,255,255,0.25) !important;
         border-bottom: 4px solid #50BFFF !important;
+    }}
+    .custom-card {{
+        background-color: rgba(255,255,255,0.07);
+        padding: 15px;
+        border-radius: 15px;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }}
+    .custom-card:hover {{
+        transform: scale(1.03);
+        box-shadow: 0 6px 20px rgba(80,191,255,0.4);
+    }}
+    .custom-card h3 {{
+        font-size: 18px !important;
+        margin-bottom: 10px;
+    }}
+    .custom-card p {{
+        font-size: 22px !important;
+        margin: 0;
     }}
     </style>
     """, unsafe_allow_html=True)
