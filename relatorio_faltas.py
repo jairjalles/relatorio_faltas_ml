@@ -1,5 +1,5 @@
 # Arquivo: dashboard_faltas_final.py
-# Autor: Jair Jales + Ajustes modernos e responsivos
+# Autor: Jair Jales
 
 import streamlit as st
 import pandas as pd
@@ -11,7 +11,7 @@ from datetime import datetime
 
 st.set_page_config(layout="wide", page_title="Dashboard de Faltas")
 
-# ===== FUNDO PERSONALIZADO COM CAMADA BRANCA TRANSPARENTE =====
+# ===== FUNDO PERSONALIZADO =====
 def set_background(image_file):
     with open(image_file, "rb") as f:
         img64 = base64.b64encode(f.read()).decode()
@@ -22,10 +22,10 @@ def set_background(image_file):
             background-size: cover;
             background-attachment: fixed;
         }}
-        .main-overlay {{
-            background: rgba(255,255,255,0.3);
-            padding: 30px;
-            border-radius: 15px;
+        .stApp > div {{
+            background-color: rgba(255, 255, 255, 0.07);
+            padding: 20px;
+            border-radius: 12px;
         }}
         h1,h2,h3,h4,h5,h6, label, p, div {{
             color: white !important;
@@ -35,34 +35,36 @@ def set_background(image_file):
             color:white!important; font-weight:bold!important;
             border-radius:12px!important;
         }}
+        .stTabs [data-baseweb="tab"] {{
+            font-size: 18px;
+            padding: 10px 20px;
+        }}
         </style>
     """, unsafe_allow_html=True)
 
 set_background("fundo_interface.jpeg")
 
-# ===== INTERFACE DO CABEÇALHO =====
-with st.container():
-    col_logo, col_title = st.columns([1, 5])
-    with col_logo:
-        st.image("logo.png", width=200)
-    with col_title:
-        st.markdown("""
-            <div style='display: flex; align-items: center; height: 200px;'>
-                <h1 style='color: white; margin: 0;'>📊 Dashboard de Faltas - Mercado Livre</h1>
-            </div>
-        """, unsafe_allow_html=True)
+# ===== LOGO + TITULO =====
+col_logo, col_title = st.columns([1, 5])
+with col_logo:
+    st.image("logo.png", width=200)
+with col_title:
+    st.markdown("""
+        <div style='display: flex; align-items: center; height: 200px;'>
+            <h1 style='color: white; margin: 0;'>📊 Dashboard de Faltas - Mercado Livre</h1>
+        </div>
+    """, unsafe_allow_html=True)
 
-# ===== CAMINHO PLANILHA =====
-st.markdown("📁 **Caminho da planilha sincronizada no OneDrive ou pasta do GitHub (planilhas/):**")
+# ===== CAMINHO DO ARQUIVO =====
+st.markdown("📁 **Caminho da planilha sincronizada no OneDrive:**")
 col_path, col_btn = st.columns([5, 1])
-caminho = col_path.text_input("", value="planilhas/FALTAS MERCADO LIVRE 2025 - Copia.xlsx")
+caminho = col_path.text_input("", value="C:/Users/Jair Jales/OneDrive - Top Shop/BASE/FALTAS MERCADO LIVRE 2025 - Copia.xlsx")
 atualizar = col_btn.button("🔄 Atualizar")
 
 if not os.path.exists(caminho):
-    st.error("Caminho inválido. Verifique se o arquivo existe no repositório local.")
+    st.error("Caminho inválido. Verifique se a planilha está sincronizada no OneDrive.")
     st.stop()
 
-# ===== LEITURA DE DADOS =====
 try:
     df_raw = pd.read_excel(caminho, sheet_name="Geral", header=[4, 5], dtype=str)
     df_detalhado = pd.read_excel(caminho, sheet_name="Geral", header=5, dtype=str)
@@ -72,7 +74,7 @@ try:
     faltas = []
     for col in df_raw.columns[4:]:
         valor, nome = col
-        if isinstance(nome, str) and str(valor).isdigit():
+        if isinstance(nome, str) and isinstance(valor, (int, float, str)) and str(valor).isdigit():
             nome_limpo = str(nome).split('.')[0].strip().upper()
             contas.append(nome_limpo)
             faltas.append(int(valor))
@@ -80,8 +82,7 @@ try:
     df_faltas = df_faltas.drop_duplicates(subset="Conta_Exibicao", keep="first")
 
     colunas_validas = df_detalhado.columns[4:]
-    df_long = df_detalhado.melt(id_vars=["SKU", "Estoque", "Marca", "Titulo"],
-                                value_vars=colunas_validas,
+    df_long = df_detalhado.melt(id_vars=["SKU", "Estoque", "Marca", "Titulo"], value_vars=colunas_validas,
                                 var_name="Conta", value_name="Check")
     df_long["Conta_Exibicao"] = df_long["Conta"].str.split(".").str[0].str.upper().str.strip()
     df_long["Faltas"] = df_long["Check"].fillna("0").apply(lambda x: 1 if str(x).strip() == "0" else 0)
@@ -89,7 +90,7 @@ except Exception as e:
     st.error(f"Erro ao processar a planilha: {e}")
     st.stop()
 
-# ===== HISTÓRICO AUTOMÁTICO =====
+# ===== HISTÓRICO =====
 historico_path = "historico_faltas.csv"
 hoje = datetime.today().strftime('%Y-%m-%d')
 faltas_atuais = int(df_faltas["Faltas"].sum())
@@ -103,7 +104,84 @@ else:
     df_historico = pd.DataFrame([{"Data": hoje, "Total Faltas": faltas_atuais}])
     df_historico.to_csv(historico_path, index=False)
 
-# ===== PERFIL DO USUÁRIO DETECTADO =====
+df_historico["Data"] = pd.to_datetime(df_historico["Data"])
+
+# ===== USUÁRIO LOCAL DETECTADO =====
 usuario_local = getpass.getuser()
 
-# ===== ABAS PRINCIPAIS (continua na próxima parte) =====
+# ===== ABAS =====
+tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"])
+
+with tabs[0]:
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+        <div class="card">
+            <h2>📦 Total de Faltas</h2>
+            <p style='font-size:30px'>{}</p>
+        </div>
+        """.format(df_faltas['Faltas'].sum()), unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        <div class="card">
+            <h2>🏢 Contas Ativas</h2>
+            <p style='font-size:30px'>{}</p>
+        </div>
+        """.format(df_faltas['Conta_Exibicao'].nunique()), unsafe_allow_html=True)
+
+    conta_filtro = st.selectbox("📁 Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].unique()))
+    if conta_filtro != "Todas":
+        df_filtrado = df_long[df_long["Conta_Exibicao"] == conta_filtro]
+    else:
+        df_filtrado = df_long
+
+    st.markdown("### 📊 Faltas por Conta")
+    graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=True), x="Faltas", y="Conta_Exibicao", orientation="h",
+                         labels={"Faltas": "Faltas", "Conta_Exibicao": "Conta"}, color="Faltas")
+    graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
+    st.plotly_chart(graf_contas, use_container_width=True)
+
+    st.markdown("### 🏷️ Top Marcas com mais Faltas")
+    top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
+    st.plotly_chart(px.bar(top_marcas, x="Faltas", y="Marca", orientation="h", color="Faltas"), use_container_width=True)
+
+    st.markdown("### 📄 Tabela Geral")
+    st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], use_container_width=True, height=400)
+
+with tabs[1]:
+    st.markdown("## 📈 Histórico de Faltas")
+    st.plotly_chart(px.line(df_historico, x="Data", y="Total Faltas", markers=True), use_container_width=True)
+
+with tabs[2]:
+    st.markdown("## 🚨 Alertas")
+    alertas = df_faltas[df_faltas["Faltas"] >= 50]
+    st.write("🔴 Contas com 50+ faltas:")
+    st.dataframe(alertas)
+
+with tabs[3]:
+    st.markdown("## 📤 Exportações")
+    st.download_button("⬇️ Baixar Faltas", df_faltas.to_csv(index=False).encode("utf-8"), file_name="faltas.csv")
+    st.download_button("⬇️ Baixar Tabela Geral", df_long.to_csv(index=False).encode("utf-8"), file_name="detalhado.csv")
+
+with tabs[4]:
+    st.markdown("## 📂 Base Criados")
+    st.dataframe(df_base, use_container_width=True)
+    st.link_button("🔧 Editar manualmente no SharePoint",
+        "https://topshopbrasil.sharepoint.com/:x:/r/sites/criacao/_layouts/15/Doc.aspx?"
+        "sourcedoc=%7BE87C6408-4F5C-4882-BB8E-5FB2A0845FD6%7D&file=FALTAS%20MERCADO%20LIVRE%202025%20-%20Copia.xlsx&"
+        "action=default&mobileredirect=true")
+
+with tabs[5]:
+    st.markdown("## ⚙️ Configurações")
+    sku = st.text_input("🔍 Buscar SKU")
+    if sku:
+        resultado = df_long[df_long["SKU"].str.contains(sku, case=False, na=False)]
+        st.dataframe(resultado)
+
+with tabs[6]:
+    st.markdown("## 👤 Perfil")
+    st.success(f"Usuário atual: **{usuario_local}**")
+    st.markdown("**Função:** Desenvolvedor & Automatizador de Processos")
+
+st.divider()
+st.markdown("📌 Desenvolvido por Jair Jales com base na ideia de Ronald Costa")
