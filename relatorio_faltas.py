@@ -227,13 +227,15 @@ with tabs[2]:
     st.dataframe(df_faltas.query("Faltas>=50"), use_container_width=True)
     st.subheader("🟠 SKUs em 5+ contas")
     sa = (
-        df_long[df_long["Faltas"]==1]
-        .groupby("SKU")["Conta_Exibicao"]
-        .count().reset_index(name="Contas")
-        .query("Contas>=5")
-    )
-    st.dataframe(sa, use_container_width=True)
-
+    df_long[df_long["Faltas"] == 1]
+    .groupby("SKU")["Conta_Exibicao"]
+    .agg([
+        ("Contas", lambda x: ", ".join(sorted(set(x)))),
+        ("Total", "count")
+    ])
+    .reset_index()
+    .query("Total >= 5")
+)
 # --- TAB 3: Exportações ---
 with tabs[3]:
     st.markdown("## 📥 Exportações")
