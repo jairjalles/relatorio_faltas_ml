@@ -187,7 +187,7 @@ with tabs[0]:
             df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
         # GRÁFICO DE FALTAS POR CONTA — leitura direta da linha 5 da planilha
-          st.markdown("### 📊 Faltas por Conta")
+    st.markdown("### 📊 Faltas por Conta")
           try:
               df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
               linha_faltas = df_raw_sem_header.iloc[4, 4:]  # linha 5 (índice 4), colunas a partir de E
