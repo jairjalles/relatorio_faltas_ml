@@ -1,17 +1,13 @@
-# Arquivo: dashboard_faltas_final.py
-# Autor: Jair Jales
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import base64
 import os
-import getpass
 from datetime import datetime
 
 st.set_page_config(layout="wide", page_title="Dashboard de Faltas")
 
-# ===== FUNDO PERSONALIZADO =====
+# ===== FUNDO PERSONALIZADO COM CAMADA EXTRA =====
 def set_background(image_file):
     with open(image_file, "rb") as f:
         img64 = base64.b64encode(f.read()).decode()
@@ -22,53 +18,86 @@ def set_background(image_file):
             background-size: cover;
             background-attachment: fixed;
         }}
-        .fundo-transparente {{
-            background: rgba(0,0,0,0.3);
+
+        .container-bg {{
+            background-color: rgba(0, 0, 0, 0.45);
             padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
         }}
-        h1,h2,h3,h4,h5,h6, label, p, div {{
+
+        h1, h2, h3, h4, h5, h6, label, p, div {{
             color: white !important;
         }}
+
         .stButton>button {{
             background: linear-gradient(90deg,#235C9B,#012C4E)!important;
-            color:white!important; font-weight:bold!important;
+            color:white!important;
+            font-weight:bold!important;
             border-radius:12px!important;
+        }}
+
+        .block-container {{
+            padding-top: 2rem;
         }}
         </style>
     """, unsafe_allow_html=True)
 
 set_background("fundo_interface.jpeg")
 
-# ===== FUNDO DE TUDO =====
-st.markdown("<div class='fundo-transparente'>", unsafe_allow_html=True)
-
-# ===== LOGO + TITULO =====
-col_logo, col_title = st.columns([1, 5])
-with col_logo:
-    st.image("logo.png", width=200)
-with col_title:
-    st.markdown("""
-        <div style='display: flex; align-items: center; height: 200px;'>
-            <h1 style='color: white; margin: 0;'>📊 Dashboard de Faltas - Mercado Livre</h1>
+# ===== LOGO + TITULO COM CAMADA =====
+with st.container():
+    col_logo, col_title = st.columns([1, 5])
+    with col_logo:
+        st.image("logo.png", width=200)
+    with col_title:
+        st.markdown("""
+        <div class='container-bg'>
+            <h1 style='margin: 0;'>📊 Dashboard de Faltas - Mercado Livre</h1>
         </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-# ===== CAMINHO DO ARQUIVO =====
-st.markdown("📁 **Caminho da planilha sincronizada no OneDrive ou GitHub (pasta planilhas/):**")
+# ===== CAMINHO DO ARQUIVO COM CAMADA =====
+st.markdown("""
+    <div class='container-bg'>
+        <p>📁 <strong>Caminho da planilha sincronizada no OneDrive ou GitHub (pasta planilhas/)</strong>:</p>
+    </div>
+""", unsafe_allow_html=True)
+
 col_path, col_btn = st.columns([5, 1])
 caminho = col_path.text_input("", value="planilhas/FALTAS MERCADO LIVRE 2025.xlsx")
 atualizar = col_btn.button("🔄 Atualizar")
 
 if not os.path.exists(caminho):
-    st.error("Caminho inválido. Verifique se a planilha está sincronizada no OneDrive ou existe na pasta 'planilhas/'.")
+    st.error("Caminho inválido. Verifique se a planilha está sincronizada no OneDrive.")
     st.stop()
 
-# FECHA DIV VISUAL
-st.markdown("</div>", unsafe_allow_html=True)
+# Carregamento e processamento da planilha
+try:
+    df_raw = pd.read_excel(caminho, sheet_name="Geral", header=[4, 5], dtype=str)
+    df_detalhado = pd.read_excel(caminho, sheet_name="Geral", header=5, dtype=str)
+    df_base = pd.read_excel(caminho, sheet_name="Base Criados", header=2, dtype=str)
 
-# O restante do código (leitura da planilha, histórico, abas, gráficos etc.) continua aqui...
+    contas = []
+    faltas = []
+    for col in df_raw.columns[4:]:
+        valor, nome = col
+        if isinstance(nome, str) and isinstance(valor, (int, float, str)) and str(valor).isdigit():
+            nome_limpo = str(nome).split('.')[0].strip().upper()
+            contas.append(nome_limpo)
+            faltas.append(int(valor))
+    df_faltas = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
+    df_faltas = df_faltas.drop_duplicates(subset="Conta_Exibicao", keep="first")
 
-# OBS: o restante deve ser colado após esse bloco com os ajustes visuais adicionados.
-# Isso garante que tudo fique com fundo escuro translúcido e estilizado como solicitado.
+    colunas_validas = df_detalhado.columns[4:]
+    df_long = df_detalhado.melt(id_vars=["SKU", "Estoque", "Marca", "Titulo"],
+                                 value_vars=colunas_validas,
+                                 var_name="Conta", value_name="Check")
+    df_long["Conta_Exibicao"] = df_long["Conta"].str.split(".").str[0].str.upper().str.strip()
+    df_long["Faltas"] = df_long["Check"].fillna("0").apply(lambda x: 1 if str(x).strip() == "0" else 0)
+except Exception as e:
+    st.error(f"Erro ao processar a planilha: {e}")
+    st.stop()
+
+# A partir daqui, seguirá com as abas, gráficos, filtros, e animações visuais como na versão anterior
+# Basta colar o restante do código (das abas e gráficos) abaixo deste bloco
