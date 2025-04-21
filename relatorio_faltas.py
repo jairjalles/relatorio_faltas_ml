@@ -136,15 +136,15 @@ try:
 
     contas, faltas = [], []
     def ler_faltas_linha5(path):
-    df_raw = pd.read_excel(path, sheet_name="Geral", header=None)
-    linha_faltas = df_raw.iloc[4, 4:]  # linha 5 (index 4), colunas E em diante
-    cabecalhos = df_raw.iloc[5, 4:]    # linha 6 (index 5), nomes das contas
-    contas, faltas = [], []
-    for val, conta in zip(linha_faltas, cabecalhos):
-        if pd.notna(val) and str(val).isdigit():
-            contas.append(str(conta).strip().upper())
-            faltas.append(int(val))
-    return pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
+        df_raw = pd.read_excel(path, sheet_name="Geral", header=None)
+        linha_faltas = df_raw.iloc[4, 4:]  # linha 5 (index 4), colunas E em diante
+        cabecalhos = df_raw.iloc[5, 4:]    # linha 6 (index 5), nomes das contas
+        contas, faltas = [], []
+        for val, conta in zip(linha_faltas, cabecalhos):
+            if pd.notna(val) and str(val).isdigit():
+               contas.append(str(conta).strip().upper())
+               faltas.append(int(val))
+        return pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
     
     # Detalhado (long)
     cols = df_det.columns[4:]
