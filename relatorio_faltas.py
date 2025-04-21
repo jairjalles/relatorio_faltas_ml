@@ -169,7 +169,7 @@ with tabs[0]:
         st.plotly_chart(graf_contas, use_container_width=True)
 
         # ==== GRÁFICO 2: Top Marcas ====
-       st.markdown("### 🏷️ Top Marcas com mais Faltas")
+st.markdown("### 🏷️ Top Marcas com mais Faltas")
 top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index()
 top_marcas = top_marcas.sort_values("Faltas", ascending=False).head(10)
 
