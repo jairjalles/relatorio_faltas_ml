@@ -106,11 +106,11 @@ with col2:
 
 # ===== CAMINHO DA PLANILHA =====
 st.markdown("📁 **Caminho da planilha sincronizada:**")
-c_path, c_btn = st.columns([5,1])
-planilha = c_path.text_input("", "planilhas/FALTAS MERCADO LIVRE 2025.xlsx", key="input_path")
-if c_btn.button("🔄 Atualizar", key="btn_refresh"):
-    st.experimental_rerun()
-
+planilha = st.text_input(
+    "", 
+    value=st.session_state.get("input_path", "planilhas/FALTAS MERCADO LIVRE 2025.xlsx"),
+    key="input_path"
+)
 if not os.path.isfile(planilha):
     st.error("Caminho inválido. Verifique a localização do arquivo.")
     st.stop()
