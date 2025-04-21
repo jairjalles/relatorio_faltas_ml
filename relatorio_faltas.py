@@ -222,22 +222,48 @@ with tabs[0]:
         """, unsafe_allow_html=True)
 
         # filtros lado a lado
-        st.markdown(
-            "<div style='background-color:rgba(255,255,255,0.07);padding:20px;border-radius:15px;margin-bottom:20px;'>",
-            unsafe_allow_html=True
-        )
-        fcol1, fcol2 = st.columns(2)
-        contas_opts = ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().astype(str).unique().tolist())
-        marcas_opts = ["Todas"] + sorted(df_long["Marca"].dropna().astype(str).unique().tolist())
-        conta_sel = fcol1.selectbox("📁 Filtrar por Conta", contas_opts, key="filtro_conta")
-        marca_sel = fcol2.selectbox("🏷️ Filtrar por Marca", marcas_opts, key="filtro_marca")
-        st.markdown("</div>", unsafe_allow_html=True)
+        # filtros lado a lado com caixa translúcida
+st.markdown(
+    "<div style='background-color:rgba(255,255,255,0.07);"
+    "padding:20px;border-radius:15px;margin-bottom:20px;'>",
+    unsafe_allow_html=True
+)
+fcol1, fcol2 = st.columns(2)
 
-        df_fil = df_long.copy()
-        if conta_sel != "Todas":
-            df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
-        if marca_sel != "Todas":
-            df_fil = df_fil[df_fil["Marca"] == marca_sel]
+contas_opts = ["Todas"] + sorted(
+    df_long["Conta_Exibicao"]
+    .dropna()
+    .astype(str)
+    .unique()
+    .tolist()
+)
+marcas_opts = ["Todas"] + sorted(
+    df_long["Marca"]
+    .dropna()
+    .astype(str)
+    .unique()
+    .tolist()
+)
+
+conta_sel = fcol1.selectbox(
+    "📁 Filtrar por Conta",
+    contas_opts,
+    key="filtro_conta"
+)
+marca_sel = fcol2.selectbox(
+    "🏷️ Filtrar por Marca",
+    marcas_opts,
+    key="filtro_marca"
+)
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+# aplica filtros
+df_fil = df_long.copy()
+if conta_sel != "Todas":
+    df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
+if marca_sel != "Todas":
+    df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
         st.markdown("### 📊 Faltas por Conta")
         g1 = px.bar(
