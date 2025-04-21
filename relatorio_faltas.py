@@ -75,7 +75,7 @@ def load_css(image_path):
 
     .custom-card {{
         background-color: rgba(255, 255, 255, 0.07);
-        padding: 20px;
+        padding: 15px;
         border-radius: 15px;
         text-align: center;
         transition: transform 0.4s ease, box-shadow 0.4s ease;
