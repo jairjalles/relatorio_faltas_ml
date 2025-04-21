@@ -142,11 +142,26 @@ with tabs[0]:
     st.plotly_chart(graf_contas, use_container_width=True)
 
     st.markdown("### 🏷️ Top Marcas com mais Faltas")
-    top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
-    graf_marcas = px.bar(top_marcas, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
-    graf_marcas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
-    graf_marcas.update_traces(marker_line_width=1, textposition="outside")
-    st.plotly_chart(graf_marcas, use_container_width=True)
+top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index()
+top_marcas = top_marcas.sort_values("Faltas", ascending=False).head(10)
+
+graf_marcas = px.bar(
+    top_marcas,
+    x="Faltas",
+    y="Marca",
+    orientation="h",
+    color="Faltas",
+    text="Faltas",
+    labels={"Marca": "Marca", "Faltas": "Qtd. Faltas"}
+)
+graf_marcas.update_layout(
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    hoverlabel=dict(bgcolor="#235C9B", font_size=14, font_color="white")
+)
+graf_marcas.update_traces(marker_line_width=1, textposition="outside")
+
+st.plotly_chart(graf_marcas, use_container_width=True)
 
     st.markdown("### 📋 Tabela Geral de Dados")
     st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], use_container_width=True, height=400)
