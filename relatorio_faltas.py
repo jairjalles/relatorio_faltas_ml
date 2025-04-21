@@ -13,7 +13,6 @@ st.set_page_config(
     page_title="Dashboard de Faltas",
     initial_sidebar_state="expanded"
 )
-
 def load_css(image_path):
     img_b64 = base64.b64encode(open(image_path, "rb").read()).decode()
     st.markdown(f"""
@@ -23,41 +22,74 @@ def load_css(image_path):
         background-size: cover;
         background-attachment: fixed;
     }}
+
     section.main > div {{
-        background-color: rgba(255,255,255,0.10) !important;
-        border-radius: 20px;
-        padding: 30px;
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        border-radius: 15px;
+        padding: 20px;
         margin-top: 10px;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease-in-out;
     }}
+
     h1,h2,h3,h4,h5,h6,p,label,span {{
         color: white !important;
     }}
+
     .stButton > button {{
-        background: linear-gradient(90deg,#235C9B,#012C4E) !important;
+        background: linear-gradient(90deg, #235C9B, #012C4E) !important;
         color: white !important;
         font-weight: bold !important;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        padding: 0.6em 1.2em !important;
+        font-size: 16px !important;
     }}
+
     .stButton > button:hover {{
         transform: scale(1.05);
         box-shadow: 0 0 12px #50BFFF;
     }}
+
+    .custom-card {{
+        background-color: rgba(255,255,255,0.08);
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        min-width: 180px;
+        min-height: 90px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }}
+
+    .custom-card:hover {{
+        transform: scale(1.03);
+        box-shadow: 0 6px 18px rgba(80,191,255,0.4);
+    }}
+
+    .stTabs [data-baseweb="tab"] {{
+        font-size: 18px !important;
+        padding: 14px 26px !important;
+        font-weight: bold !important;
+        color: white !important;
+        border-radius: 12px 12px 0 0 !important;
+        background-color: rgba(255,255,255,0.06) !important;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+    }}
+
+    .stTabs [data-baseweb="tab"]:hover {{
+        transform: translateY(-2px);
+        background-color: rgba(255,255,255,0.15) !important;
+    }}
+
+    .stTabs [aria-selected="true"] {{
+        transform: scale(1.04);
+        background-color: rgba(255,255,255,0.25) !important;
+        border-bottom: 4px solid #50BFFF !important;
+    }}
     </style>
-    """, unsafe_allow_html=True)
-
-load_css("fundo_interface.jpeg")
-
-col1, col2 = st.columns([1,5])
-with col1:
-    st.image("logo.png", width=200)
-with col2:
-    st.markdown("""
-    <div style='display:flex;align-items:center;height:200px;'>
-        <h1 style='margin:0;'>📊 Dashboard de Faltas - Mercado Livre</h1>
-    </div>
     """, unsafe_allow_html=True)
 
 st.markdown("📁 **Caminho da planilha sincronizada:**")
