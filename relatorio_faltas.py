@@ -220,25 +220,39 @@ with tabs[0]:
         df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
         height=400, use_container_width=True
     )
+    
 # --- TAB 2: Alertas ---
 # --- TAB 2: Alertas ---
 with tabs[2]:
     st.markdown("## 🚨 Alertas Inteligentes")
 
+    # Contas com muitas faltas
     st.subheader("🔴 Contas com 50+ faltas")
     st.dataframe(df_faltas.query("Faltas>=50"), use_container_width=True)
 
-    st.subheader("🟠 SKUs em 5+ contas")
+    # SKUs com falta em 5+ contas
+    st.subheader("🟠 SKUs com Falta em 5+ Contas")
+
     sa = (
         df_long[df_long["Faltas"] == 1]
         .groupby("SKU")["Conta_Exibicao"]
         .agg([
-            ("Contas", lambda x: ", ".join(sorted(set(x)))),  # nomes únicos em ordem
-            ("Total", "count")  # número total
+            ("Contas", lambda x: ", ".join(sorted({str(i).strip().upper() for i in x if pd.notna(i)}))),
+            ("Total", lambda x: sum(pd.notna(x)))
         ])
         .reset_index()
         .query("Total >= 5")
     )
+
+    # Adiciona emoji visual
+    def alerta_emoji(total):
+        if total >= 10:
+            return "📛 " + str(total)
+        else:
+            return "✅ " + str(total)
+
+    sa["Total"] = sa["Total"].apply(alerta_emoji)
+
     st.dataframe(sa, use_container_width=True)
 
 # --- TAB 3: Exportações ---
