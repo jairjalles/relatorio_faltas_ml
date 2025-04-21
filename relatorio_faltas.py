@@ -246,13 +246,18 @@ with tabs[0]:
         with col_filtros:
             st.markdown(
                 """
-                <div style='padding: 15px; background-color: rgba(255,255,255,0.07); border-radius: 12px; margin-top: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);'>
+                <div style='
+                    padding: 15px;
+                    background-color: rgba(255,255,255,0.07);
+                    border-radius: 12px;
+                    margin-top: -10px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    height: auto;
+                 '>
                     <h5 style='margin-bottom: 15px;'>🎯 <b>Filtros</b></h5>
                 </div>
                 """,
                 unsafe_allow_html=True
-            )
-
             conta_sel = st.selectbox(
                 "📁 Filtrar por Conta",
                 ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()),
