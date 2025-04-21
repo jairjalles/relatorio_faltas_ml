@@ -233,7 +233,7 @@ try:
 except Exception as erro:
     st.error(f"Erro ao gerar gráfico: {erro}")
 
-        st.markdown("### 🏷️ Top Marcas com mais Faltas")
+    st.markdown("### 🏷️ Top Marcas com mais Faltas")
         top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
         g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
         g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
