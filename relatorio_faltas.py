@@ -7,8 +7,6 @@ import plotly.express as px
 import base64
 import os
 import getpass
-from datetime import datetime, timedelta
-import pytz
 
 st.set_page_config(
     layout="wide",
