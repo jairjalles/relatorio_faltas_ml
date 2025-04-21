@@ -174,17 +174,16 @@ tabs = st.tabs([
     "⚙️ Configurações",
     "👤 Perfil"
 ])
-
 # --- ABA 0: Dashboard Geral ---
-# --- ABA 0: Dashboard Geral ---
+# === ABA 0: Dashboard Geral ===
 with tabs[0]:
     if not df_long.empty and "Conta_Exibicao" in df_long.columns:
-        # Único filtro de conta
+        # único filtro de conta
         contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
         conta_filtro = st.selectbox(
             "📁 Filtrar por Conta",
             ["Todas"] + contas_unicas,
-            key="filtro_conta_dashboard"  # somente aqui
+            key="filtro_conta_dashboard"
         )
         df_filtrado = (
             df_long
@@ -192,10 +191,62 @@ with tabs[0]:
             else df_long[df_long["Conta_Exibicao"] == conta_filtro]
         )
 
-        # Cards e alertas (sem duplicação)
-        ...  # mantém exatamente como antes
+        # cálculo de alertas e timestamps
+        fuso_br = pytz.timezone("America/Sao_Paulo")
+        agora = datetime.now(fuso_br)
+        ultima_atualizacao = agora.strftime("%d/%m/%Y %H:%M")
+        semana_passada = (agora - timedelta(days=7)).strftime("%Y-%m-%d")
+        totais_atuais = int(df_faltas["Faltas"].sum())
+        totais_anteriores = df_historico.loc[
+            df_historico["Data"] == semana_passada, "Total Faltas"
+        ].sum()
+        diferenca = totais_atuais - totais_anteriores
+        percentual = (diferenca / totais_anteriores * 100) if totais_anteriores > 0 else 0
+        emoji_variacao = "🔺" if percentual > 0 else "✅"
+        mensagem_semana = f"{emoji_variacao} {'Aumento' if percentual>0 else 'Redução'} de {abs(percentual):.1f}% na semana"
+        sku_impacto = (
+            df_long[df_long["Faltas"] == 1]
+            .groupby("SKU")["Conta_Exibicao"].count()
+            .reset_index(name="Qtd")
+            .sort_values("Qtd", ascending=False)
+        )
+        if not sku_impacto.empty:
+            top_sku = sku_impacto.iloc[0]
+            impacto_mensagem = (
+                f"⚠️ SKU {top_sku['SKU']} com falta em {top_sku['Qtd']} contas"
+            )
+        else:
+            impacto_mensagem = "✅ Nenhum SKU de alto impacto hoje"
+        skus_hoje = df_long[df_long["Faltas"] == 1]["SKU"].nunique()
+        alerta_skus = f"🆕 {skus_hoje} SKUs com faltas hoje"
 
-        # ==== GRÁFICO DE CONTAS ====  
+        # ——— cards e alertas ———
+        st.markdown(f"""
+        <div style='display:flex; gap:20px; margin-bottom:20px;'>
+            <div class='custom-card'>
+                <h3>📦 Total de Faltas</h3>
+                <p style='font-size:24px'>{totais_atuais}</p>
+            </div>
+            <div class='custom-card'>
+                <h3>🏬 Contas Ativas</h3>
+                <p style='font-size:24px'>{df_faltas["Conta_Exibicao"].nunique()}</p>
+            </div>
+            <div class='custom-card'>
+                <h3>📅 Última Atualização</h3>
+                <p style='font-size:20px'>{ultima_atualizacao}</p>
+            </div>
+        </div>
+        <div style='margin-bottom:30px; color:white;'>
+            <h4>🔔 Alertas do Sistema</h4>
+            <ul>
+                <li>{mensagem_semana}</li>
+                <li>{impacto_mensagem}</li>
+                <li>{alerta_skus}</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ——— gráfico de faltas por conta ———
         st.markdown("### 📊 Faltas por Conta")
         graf_contas = px.bar(
             df_faltas.sort_values("Faltas"),
@@ -204,36 +255,26 @@ with tabs[0]:
         )
         graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
         graf_contas.update_traces(textposition="outside")
-        st.plotly_chart(
-            graf_contas,
-            use_container_width=True,
-            key="chart_contas"  # somente aqui
-        )
+        st.plotly_chart(graf_contas, use_container_width=True, key="chart_contas")
 
-        # ==== GRÁFICO DE MARCAS ====  
+        # ——— gráfico de top marcas ———
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
-        topm = (
-            df_filtrado
-            .groupby("Marca")["Faltas"]
-            .sum()
-            .reset_index()
+        top_marcas = (
+            df_filtrado.groupby("Marca")["Faltas"]
+            .sum().reset_index()
             .sort_values("Faltas", ascending=False)
             .head(10)
         )
         graf_marcas = px.bar(
-            topm,
+            top_marcas,
             x="Faltas", y="Marca",
             orientation="h", color="Faltas", text="Faltas"
         )
         graf_marcas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
         graf_marcas.update_traces(textposition="outside")
-        st.plotly_chart(
-            graf_marcas,
-            use_container_width=True,
-            key="chart_marcas"
-        )
+        st.plotly_chart(graf_marcas, use_container_width=True, key="chart_marcas")
 
-        # ==== TABELA DETALHADA ====  
+        # ——— tabela detalhada ———
         st.markdown("### 📋 Tabela Geral de Dados")
         st.dataframe(
             df_filtrado[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]],
@@ -241,7 +282,7 @@ with tabs[0]:
         )
     else:
         st.warning("Nenhum dado disponível para exibir.")
-
+        
 # --- ABA 1: Histórico ---
 with tabs[1]:
     st.markdown("## 📈 Evolução das Faltas")
