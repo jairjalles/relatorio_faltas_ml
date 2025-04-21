@@ -29,24 +29,6 @@ def set_background(image_file):
             background: linear-gradient(90deg,#235C9B,#012C4E)!important;
             color:white!important; font-weight:bold!important;
             border-radius:12px!important;
-            transition: all 0.3s ease-in-out;
-        }}
-        .stButton>button:hover {{
-            transform: scale(1.05);
-        }}
-        .glass-card {{
-            background: rgba(255, 255, 255, 0.07);
-            border-radius: 20px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: fadeIn 1s ease-in-out;
-            margin-bottom: 20px;
-        }}
-        @keyframes fadeIn {{
-            0% {{ opacity: 0; transform: translateY(20px); }}
-            100% {{ opacity: 1; transform: translateY(0); }}
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -64,16 +46,17 @@ with col_title:
         </div>
     """, unsafe_allow_html=True)
 
-# ===== CAMINHO DO ARQUIVO (GitHub ou Local) =====
+# ===== CAMINHO DO ARQUIVO =====
 st.markdown("📁 **Caminho da planilha sincronizada no OneDrive ou GitHub (pasta planilhas/):**")
 col_path, col_btn = st.columns([5, 1])
 caminho = col_path.text_input("", value="planilhas/FALTAS MERCADO LIVRE 2025.xlsx")
 atualizar = col_btn.button("🔄 Atualizar")
 
 if not os.path.exists(caminho):
-    st.warning("Este é um link online ou o caminho não existe localmente. O botão de edição pode estar disponível, mas a leitura da planilha será ignorada.")
+    st.error("Caminho inválido. Verifique se a planilha está sincronizada no OneDrive ou GitHub.")
     st.stop()
 
+# ===== LEITURA DOS DADOS =====
 try:
     df_raw = pd.read_excel(caminho, sheet_name="Geral", header=[4, 5], dtype=str)
     df_detalhado = pd.read_excel(caminho, sheet_name="Geral", header=5, dtype=str)
@@ -99,28 +82,50 @@ except Exception as e:
     st.error(f"Erro ao processar a planilha: {e}")
     st.stop()
 
+# ===== HISTÓRICO =====
+historico_path = "historico_faltas.csv"
+hoje = datetime.today().strftime('%Y-%m-%d')
+faltas_atuais = int(df_faltas["Faltas"].sum())
+
+if os.path.exists(historico_path):
+    df_historico = pd.read_csv(historico_path)
+    if hoje not in df_historico["Data"].values:
+        df_historico = pd.concat([df_historico, pd.DataFrame([{"Data": hoje, "Total Faltas": faltas_atuais}])], ignore_index=True)
+        df_historico.to_csv(historico_path, index=False)
+else:
+    df_historico = pd.DataFrame([{"Data": hoje, "Total Faltas": faltas_atuais}])
+    df_historico.to_csv(historico_path, index=False)
+
+# ===== USUÁRIO LOCAL DETECTADO =====
 usuario_local = getpass.getuser()
-st.markdown("""
-<div class="glass-card">
-    <h2>📌 Total de Faltas: {}</h2>
-    <h2>📁 Contas Ativas: {}</h2>
-</div>
-""".format(df_faltas['Faltas'].sum(), df_faltas['Conta_Exibicao'].nunique()), unsafe_allow_html=True)
 
-st.markdown("## 📊 Gráfico de Faltas por Conta")
-graf = px.bar(df_faltas.sort_values("Faltas", ascending=True), 
-              x="Faltas", y="Conta_Exibicao", orientation="h",
-              title="Contas com maior número de faltas",
-              color_discrete_sequence=["#4287f5"])
-graf.update_layout(
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='white'),
-    hoverlabel=dict(bgcolor="white", font_size=14, font_family="Arial")
-)
-st.plotly_chart(graf, use_container_width=True)
-
+# ===== INTERFACE: DADOS GERAIS COM CARDS =====
 st.markdown("""
----
-👤 Usuário atual: **{}**
-""".format(usuario_local))
+    <style>
+    .card-metric {{
+        background: linear-gradient(to right, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+        padding: 25px 40px;
+        border-radius: 20px;
+        font-size: 24px;
+        margin-bottom: 25px;
+    }}
+    </style>
+    <div class='card-metric'>
+        <div style='font-size: 28px;'>📌 <b>Total de Faltas:</b> {df_faltas['Faltas'].sum()}</div>
+        <div style='font-size: 26px;'>📁 <b>Contas Ativas:</b> {df_faltas['Conta_Exibicao'].nunique()}</div>
+    </div>
+""", unsafe_allow_html=True)
+
+# ===== GRAFICO DE FALTAS POR CONTA =====
+st.markdown("""
+    <h2>📊 Gráfico de Faltas por Conta</h2>
+    <p><b>Contas com maior número de faltas</b></p>
+""", unsafe_allow_html=True)
+
+fig = px.bar(df_faltas.sort_values("Faltas", ascending=False),
+             x="Faltas", y="Conta_Exibicao", orientation="h",
+             labels={"Faltas": "Quantidade de Faltas", "Conta_Exibicao": "Conta"},
+             color_discrete_sequence=["#5390d9"])
+fig.update_layout(hoverlabel=dict(bgcolor="#333", font_size=13, font_family="Arial"))
+fig.update_traces(marker=dict(line=dict(width=0.5, color='white')))
+st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
