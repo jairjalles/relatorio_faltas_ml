@@ -13,18 +13,11 @@ st.set_page_config(
     page_title="Dashboard de Faltas",
     initial_sidebar_state="expanded"
 )
-
-def load_css(image_path):
-    img_b64 = base64.b64encode(open(image_path, "rb").read()).decode()
+def load_css():
     st.markdown(f"""
     <style>
-    .stApp {{
-        background-image: url("data:image/png;base64,{img_b64}");
-        background-size: cover;
-        background-attachment: fixed;
-    }}
     section.main > div {{
-        background-color: rgba(255, 255, 255, 0.20) !important;
+        background-color: rgba(255, 255, 255, 0.12) !important;
         border-radius: 20px;
         padding: 30px;
         margin-top: 10px;
