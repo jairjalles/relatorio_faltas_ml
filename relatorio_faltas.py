@@ -18,12 +18,12 @@ st.set_page_config(
 
 # ===== CSS GLOBAL (fundo + caixas translúcidas + botões + abas) =====
 def load_css(image_path):
-    img_b64 = base64.b64encode(open(image_path, "rb").read()).decode()
+    img64 = base64.b64encode(open(image_path, "rb").read()).decode()
     st.markdown(f"""
     <style>
     /* Fundo da app */
     .stApp {{
-        background-image: url("data:image/png;base64,{img_b64}");
+        background-image: url("data:image/png;base64,{img64}");
         background-size: cover;
         background-attachment: fixed;
     }}
@@ -98,11 +98,13 @@ col1, col2 = st.columns([1,5])
 with col1:
     st.image("logo.png", width=200)
 with col2:
-    st.markdown("""
-    <div style='display:flex;align-items:center;height:200px;'>
-        <h1 style='margin:0;'>📊 Dashboard de Faltas - Mercado Livre</h1>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style='display:flex;align-items:center;height:200px;'>
+            <h1 style='margin:0;'>📊 Dashboard de Faltas - Mercado Livre</h1>
+        </div>
+        """, unsafe_allow_html=True
+    )
 
 # ===== CAMINHO DA PLANILHA =====
 st.markdown("📁 **Caminho da planilha sincronizada:**")
@@ -126,10 +128,7 @@ try:
         if isinstance(n, str) and str(v).isdigit():
             contas.append(n.split('.')[0].strip().upper())
             faltas.append(int(v))
-    df_faltas = pd.DataFrame({
-        "Conta_Exibicao": contas,
-        "Faltas": faltas
-    }).drop_duplicates("Conta_Exibicao")
+    df_faltas = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas}).drop_duplicates("Conta_Exibicao")
 
     cols = df_det.columns[4:]
     df_long = df_det.melt(
@@ -139,10 +138,9 @@ try:
     )
     df_long["Conta_Exibicao"] = (
         df_long["Conta"].str.split(".").str[0]
-        .str.upper().str.strip()
+                 .str.upper().str.strip()
     )
-    df_long["Faltas"] = df_long["Check"].fillna("0")\
-        .apply(lambda x: 1 if str(x).strip()=="0" else 0)
+    df_long["Faltas"] = df_long["Check"].fillna("0").apply(lambda x: 1 if str(x).strip()=="0" else 0)
 
 except Exception as e:
     st.error(f"Erro ao processar a planilha: {e}")
@@ -150,7 +148,7 @@ except Exception as e:
 
 # ===== HISTÓRICO =====
 hist_path = "historico_faltas.csv"
-hoje = datetime.today().strftime("%Y-%m-%d")
+hoje = datetime.today().strftime('%Y-%m-%d')
 tot_hoje = int(df_faltas["Faltas"].sum())
 
 if os.path.exists(hist_path):
@@ -208,7 +206,7 @@ with tabs[0]:
         st.markdown(f"""
         <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
           <div class='custom-card'><h3>📦 Total de Faltas</h3><p style='font-size:26px;font-weight:bold;'>{tot_hoje}</p></div>
-          <div class='custom-card'><h3>🏬 Contas Ativas</h3><p style='font-size:26px;font-weight:bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p></div>
+          <div class='custom-card'><h3>🏬 Contas Ativas</h3><p style='font-size:26px;font-weight:bold;'>{df_faltas["Conta_Exificacao"].nunique()}</p></div>
           <div class='custom-card'><h3>📅 Atualização</h3><p style='font-size:20px;font-weight:bold;'>{now}</p></div>
         </div>
         <div style='margin-bottom:30px;color:white;'>
@@ -221,80 +219,41 @@ with tabs[0]:
         </div>
         """, unsafe_allow_html=True)
 
-        # filtros lado a lado
         # filtros lado a lado com caixa translúcida
-st.markdown(
-    "<div style='background-color:rgba(255,255,255,0.07);"
-    "padding:20px;border-radius:15px;margin-bottom:20px;'>",
-    unsafe_allow_html=True
-)
-fcol1, fcol2 = st.columns(2)
-
-contas_opts = ["Todas"] + sorted(
-    df_long["Conta_Exibicao"]
-    .dropna()
-    .astype(str)
-    .unique()
-    .tolist()
-)
-marcas_opts = ["Todas"] + sorted(
-    df_long["Marca"]
-    .dropna()
-    .astype(str)
-    .unique()
-    .tolist()
-)
-
-conta_sel = fcol1.selectbox(
-    "📁 Filtrar por Conta",
-    contas_opts,
-    key="filtro_conta"
-)
-marca_sel = fcol2.selectbox(
-    "🏷️ Filtrar por Marca",
-    marcas_opts,
-    key="filtro_marca"
-)
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-# aplica filtros
-df_fil = df_long.copy()
-if conta_sel != "Todas":
-    df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
-if marca_sel != "Todas":
-    df_fil = df_fil[df_fil["Marca"] == marca_sel]
-
-st.markdown("### 📊 Faltas por Conta")
-        g1 = px.bar(
-            df_faltas.sort_values("Faltas"),
-            x="Faltas", y="Conta_Exibicao", orientation="h",
-            color="Faltas", text="Faltas"
+        st.markdown(
+            "<div style='background-color:rgba(255,255,255,0.07);padding:20px;border-radius:15px;margin-bottom:20px;'>",
+            unsafe_allow_html=True
         )
+        fcol1, fcol2 = st.columns(2)
+        contas_opts = ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().astype(str).unique().tolist())
+        marcas_opts = ["Todas"] + sorted(df_long["Marca"].dropna().astype(str).unique().tolist())
+        conta_sel = fcol1.selectbox("📁 Filtrar por Conta", contas_opts, key="filtro_conta")
+        marca_sel = fcol2.selectbox("🏷️ Filtrar por Marca", marcas_opts, key="filtro_marca")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        df_fil = df_long.copy()
+        if conta_sel != "Todas":
+            df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
+        if marca_sel != "Todas":
+            df_fil = df_fil[df_fil["Marca"] == marca_sel]
+
+        st.markdown("### 📊 Faltas por Conta")
+        g1 = px.bar(df_faltas.sort_values("Faltas"), x="Faltas", y="Conta_Exibicao", orientation="h", color="Faltas", text="Faltas")
         g1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
         g1.update_traces(textposition="outside")
         st.plotly_chart(g1, use_container_width=True, key="g_contas")
 
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
         top_m = (
-            df_fil.groupby("Marca")["Faltas"]
-            .sum().reset_index()
-            .sort_values("Faltas", ascending=False)
-            .head(10)
+            df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
         )
-        g2 = px.bar(
-            top_m, x="Faltas", y="Marca", orientation="h",
-            color="Faltas", text="Faltas"
-        )
+        g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
         g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
         g2.update_traces(textposition="outside")
         st.plotly_chart(g2, use_container_width=True, key="g_marcas")
 
         st.markdown("### 📋 Tabela Geral de Dados")
-        st.dataframe(
-            df_fil[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]],
-            height=400, use_container_width=True
-        )
+        st.dataframe(df_fil[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]], use_container_width=True, height=400)
 
 # --- TAB 1: Histórico ---
 with tabs[1]:
@@ -302,10 +261,7 @@ with tabs[1]:
     d1, d2 = st.columns(2)
     ini = d1.date_input("De", datetime.today(), key="h_ini")
     fim = d2.date_input("Até", datetime.today(), key="h_fim")
-    df_p = df_hist[
-        (df_hist["Data"]>=pd.to_datetime(ini)) &
-        (df_hist["Data"]<=pd.to_datetime(fim))
-    ]
+    df_p = df_hist[(df_hist["Data"] >= pd.to_datetime(ini)) & (df_hist["Data"] <= pd.to_datetime(fim))]
     gh = px.line(df_p, x="Data", y="Total Faltas", markers=True)
     st.plotly_chart(gh, use_container_width=True, key="g_hist")
 
@@ -316,10 +272,7 @@ with tabs[2]:
     st.dataframe(df_faltas.query("Faltas>=50"), use_container_width=True)
     st.subheader("🟠 SKUs em 5+ contas")
     sa = (
-        df_long[df_long["Faltas"]==1]
-        .groupby("SKU")["Conta_Exibicao"]
-        .count().reset_index(name="Contas")
-        .query("Contas>=5")
+        df_long[df_long["Faltas"]==1].groupby("SKU")["Conta_Exibicao"].count().reset_index(name="Contas").query("Contas>=5")
     )
     st.dataframe(sa, use_container_width=True)
 
@@ -327,7 +280,7 @@ with tabs[2]:
 with tabs[3]:
     st.markdown("## 📥 Exportações")
     st.download_button("⬇️ Faltas por Conta", df_faltas.to_csv(index=False).encode(), file_name="faltas.csv", key="e1")
-    st.download_button("⬇️ Faltas Detalhadas", df_long.to_csv(index=False).encode(), file_name="detalhado.csv", key="e2")
+    st.download_button("⬇️ Detalhado por SKU", df_long.to_csv(index=False).encode(), file_name="detalhado.csv", key="e2")
     st.download_button("⬇️ Histórico", df_hist.to_csv(index=False).encode(), file_name="hist.csv", key="e3")
 
 # --- TAB 4: Base Criados ---
