@@ -99,35 +99,56 @@ if not os.path.isfile(planilha):
     st.stop()
 
 try:
+    # Leitura bruta para capturar a linha 5 (índice 4) com os valores de faltas
     df_raw = pd.read_excel(planilha, sheet_name="Geral", header=None)
-    df_faltas = pd.DataFrame()
-    linha_faltas = df_raw.iloc[4, 4:]
-    cabecalhos = df_raw.iloc[5, 4:]
+    linha_faltas = df_raw.iloc[4, 4:]   # linha 5 com os valores
+    cabecalhos = df_raw.iloc[5, 4:]     # linha 6 com os nomes das contas
+
     contas, faltas = [], []
     for val, conta in zip(linha_faltas, cabecalhos):
         if pd.notna(val) and str(val).isdigit():
             contas.append(str(conta).strip().upper())
             faltas.append(int(val))
+
+    # DataFrame final com a leitura correta da linha 5
     df_faltas = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
 
+    # Leitura da parte detalhada e base de criados
     df_det = pd.read_excel(planilha, sheet_name="Geral", header=5, dtype=str)
     df_base = pd.read_excel(planilha, sheet_name="Base Criados", header=[0, 1], dtype=str)
+
+    # Corrige o nome das colunas da base
     df_base.columns = [str(c[1]).strip().upper() for c in df_base.columns]
     df_base_long = df_base.melt(ignore_index=False, var_name="Conta_Exibicao", value_name="SKU")
     df_base_long = df_base_long[["Conta_Exibicao", "SKU"]].dropna()
 
+    # Transforma a aba Geral em formato long
     cols = df_det.columns[4:]
-    df_long = df_det.melt(id_vars=["SKU", "Estoque", "Marca", "Titulo"], value_vars=cols, var_name="Conta", value_name="Check")
-    df_long["Conta_Exibicao"] = df_long["Conta"].str.split(".").str[0].str.upper().str.strip()
+    df_long = df_det.melt(
+        id_vars=["SKU", "Estoque", "Marca", "Titulo"],
+        value_vars=cols,
+        var_name="Conta", value_name="Check"
+    )
+    df_long["Conta_Exibicao"] = (
+        df_long["Conta"].str.split(".").str[0].str.upper().str.strip()
+    )
 
-    df_long = df_long.merge(df_base_long.drop_duplicates(), on=["SKU", "Conta_Exibicao"], how="left", indicator="_base_")
+    # Remove os SKUs que já foram criados
+    df_long = df_long.merge(
+        df_base_long.drop_duplicates(),
+        on=["SKU", "Conta_Exibicao"],
+        how="left",
+        indicator="_base_"
+    )
     df_long = df_long.query("_base_ == 'left_only'").drop(columns="_base_")
+
+    # Aplica regra de faltas (Check == 0)
     df_long["Faltas"] = df_long["Check"].fillna("0").apply(lambda x: 1 if str(x).strip() == "0" else 0)
 
 except Exception as e:
     st.error(f"Erro ao processar a planilha: {e}")
     st.stop()
-
+    
 hist_path = "historico_faltas.csv"
 hoje = datetime.today().strftime("%Y-%m-%d")
 tot_hoje = int(df_faltas["Faltas"].sum())
