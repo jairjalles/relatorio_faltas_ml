@@ -230,10 +230,11 @@ with tabs[0]:
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
 
-        linha = st.columns([4, 1])  # Cards à esquerda, Filtros à direita
+        # LINHA DE CARDS + FILTROS
+        col_cards, col_filtros = st.columns([4, 1])
 
-        # 🔹 Cards
-        with linha[0]:
+        # ----------- CARDS -----------
+        with col_cards:
             st.markdown(f"""
             <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
               <div class='custom-card'><h3>📦 Total de Faltas</h3><p style='font-size:26px;font-weight:bold;'>{tot_hoje}</p></div>
@@ -242,92 +243,67 @@ with tabs[0]:
             </div>
             """, unsafe_allow_html=True)
 
-        # 🔸 Filtros
-        with linha[1]:
+        # ----------- FILTROS -----------
+        with col_filtros:
             st.markdown("""
-            <div style='margin-top:10px; padding:15px; background-color: rgba(255,255,255,0.05); border-radius: 15px;'>
-                <h4 style='margin-bottom:15px;'>🎯 <b>Filtros</b></h4>
-
-                <div style='margin-bottom:15px;'>
-                    <p style='margin-bottom:5px;'>📁 <b>Filtrar por Conta</b></p>
+            <div style='padding: 20px; background-color: rgba(255,255,255,0.08); border-radius: 15px; margin-top: 8px;'>
+                <h4 style='margin-bottom: 20px;'>🎯 <b>Filtros</b></h4>
             """, unsafe_allow_html=True)
 
-            conta_sel = st.selectbox("", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
+            conta_sel = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
+            marca_sel = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
 
-            st.markdown("""
-                </div>
-                <div>
-                    <p style='margin-bottom:5px;'>🏷️ <b>Filtrar por Marca</b></p>
-            """, unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
-            marca_sel = st.selectbox("", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
-
-            st.markdown("</div></div>", unsafe_allow_html=True)
-
-        # 🔄 Aplicar filtros aos dados
+        # ----------- APLICAR FILTROS -----------
         df_fil = df_long.copy()
         if conta_sel != "Todas":
             df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
         if marca_sel != "Todas":
             df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
-        # --- GRÁFICO FALTAS POR CONTA ---
+        # ----------- GRÁFICO FALTAS POR CONTA -----------
         st.markdown("### 📊 Faltas por Conta")
         try:
-            df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
-            linha_faltas = df_raw_sem_header.iloc[4, 4:]
-            cabecalhos = df_raw_sem_header.iloc[5, 4:]
-
-            contas, faltas = [], []
-            for val, conta in zip(linha_faltas, cabecalhos):
-                if pd.notna(val) and str(val).isdigit():
-                    contas.append(str(conta).strip().upper())
-                    faltas.append(int(val))
-
-            df_faltas_corrigido = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
-
+            faltas_por_conta = df_fil.groupby("Conta_Exibicao")["Faltas"].sum().reset_index()
             g1 = px.bar(
-                df_faltas_corrigido.sort_values("Faltas", ascending=True),
+                faltas_por_conta.sort_values("Faltas", ascending=True),
                 x="Faltas", y="Conta_Exibicao", orientation="h",
                 color="Faltas", text="Faltas"
             )
             g1.update_layout(
-                plot_bgcolor="rgba(255,255,255,0.05)",
-                paper_bgcolor="rgba(255,255,255,0.05)",
-                transition_duration=500,
-                height=650,
-                margin=dict(l=20, r=20, t=40, b=20)
+                plot_bgcolor="rgba(255,255,255,0.02)",
+                paper_bgcolor="rgba(255,255,255,0.02)",
+                height=600
             )
-            g1.update_traces(
-                textposition="outside",
-                texttemplate="%{text}",
-                marker=dict(line=dict(width=0)),
-                hoverinfo="x+y"
-            )
-
-            st.plotly_chart(g1, use_container_width=True, key="graf_faltas")
+            g1.update_traces(textposition="outside")
+            st.plotly_chart(g1, use_container_width=True, key="g_contas")
 
         except Exception as erro:
             st.error(f"Erro ao gerar gráfico: {erro}")
 
-        # --- GRÁFICO MARCAS ---
+        # ----------- GRÁFICO TOP MARCAS -----------
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
-        top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
+        top_m = (
+            df_fil.groupby("Marca")["Faltas"]
+            .sum()
+            .reset_index()
+            .sort_values("Faltas", ascending=False)
+            .head(10)
+        )
         g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
         g2.update_layout(
-            plot_bgcolor="rgba(255,255,255,0.05)",
-            paper_bgcolor="rgba(255,255,255,0.05)",
-            transition_duration=500
+            plot_bgcolor="rgba(255,255,255,0.02)",
+            paper_bgcolor="rgba(255,255,255,0.02)",
+            height=500
         )
         g2.update_traces(textposition="outside")
         st.plotly_chart(g2, use_container_width=True, key="g_marcas")
 
-        # --- TABELA DETALHADA ---
+        # ----------- TABELA DETALHADA -----------
         st.markdown("### 📋 Tabela Geral de Dados")
-        st.dataframe(
-            df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
-            height=400, use_container_width=True
-        )
+        st.dataframe(df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
+                     height=400, use_container_width=True)
 
 # --- TAB 1: Histórico ---
 with tabs[1]:
