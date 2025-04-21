@@ -226,7 +226,7 @@ with tabs[2]:
     st.subheader("🔴 Contas com 50+ faltas")
     st.dataframe(df_faltas.query("Faltas>=50"), use_container_width=True)
     st.subheader("🟠 SKUs em 5+ contas")
-    sa = (
+sa = (
     df_long[df_long["Faltas"] == 1]
     .groupby("SKU")["Conta_Exibicao"]
     .agg([
