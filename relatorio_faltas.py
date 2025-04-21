@@ -229,17 +229,11 @@ with tabs[0]:
     else:
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
-        st.markdown(f"""
-        <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
-          <div class='custom-card'><h3>📦 Total de Faltas</h3><p style='font-size:26px;font-weight:bold;'>{tot_hoje}</p></div>
-          <div class='custom-card'><h3>🏬 Contas Ativas</h3><p style='font-size:26px;font-weight:bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p></div>
-          <div class='custom-card'><h3>📅 Atualização</h3><p style='font-size:20px;font-weight:bold;'>{now}</p></div>
-        </div>
-        """, unsafe_allow_html=True)
 
-        linha = st.columns([4, 1])  # Cards à esquerda (4 partes), Filtros à direita (1 parte)
+        # Layout com cards e filtros lado a lado
+        linha = st.columns([4, 1])  # Cards (maior) | Filtros (menor)
 
-      # 🔹 Bloco dos cards (coluna esquerda)
+        # 🔹 Bloco dos cards
         with linha[0]:
             st.markdown(f"""
             <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
@@ -249,11 +243,11 @@ with tabs[0]:
             </div>
             """, unsafe_allow_html=True)
 
-       # 🔸 Bloco dos filtros (coluna direita)
-           with linha[1]:
-               st.markdown("### 🎯 Filtros")
-               conta_sel = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
-               marca_sel = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
+        # 🔸 Bloco dos filtros
+        with linha[1]:
+            st.markdown("### 🎯 Filtros")
+            conta_sel = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
+            marca_sel = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
 
         df_fil = df_long.copy()
         if conta_sel != "Todas":
