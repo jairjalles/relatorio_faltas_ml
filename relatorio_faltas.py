@@ -162,7 +162,7 @@ with tabs[0]:
             g1 = px.bar(df_faltas_corrigido.sort_values("Faltas", ascending=True),
                         x="Faltas", y="Conta_Exibicao", orientation="h",
                         color="Faltas", text="Faltas")
-            g1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", height=1000)
+            g1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", height=800)
             g1.update_traces(textposition="outside")
             st.plotly_chart(g1, use_container_width=True, key="g_contas")
         except Exception as erro:
@@ -186,54 +186,59 @@ with tabs[1]:
         st.warning("Histórico vazio.")
         st.stop()
 
-    # Obtem os timestamps diretamente do DataFrame
     try:
+        # Convertendo corretamente para datetime.date
         data_max_ts = pd.to_datetime(df_hist["Data"].max())
         data_min_ts = pd.to_datetime(df_hist["Data"].min())
-        data_max = data_max_ts.date() if not pd.isna(data_max_ts) else datetime.today().date()
-        data_min = data_min_ts.date() if not pd.isna(data_min_ts) else (datetime.today() - timedelta(days=7)).date()
-    except Exception as e:
-        st.warning(f"⚠️ Erro ao converter datas do histórico: {e}")
-        st.stop()
 
-    col1, col2 = st.columns(2)
-    ini = col1.date_input("📅 De", value=data_max - timedelta(days=7), min_value=data_min, max_value=data_max, key="data_ini")
-    fim = col2.date_input("📅 Até", value=data_max, min_value=data_min, max_value=data_max, key="data_fim")
+        if pd.isna(data_max_ts) or pd.isna(data_min_ts):
+            raise ValueError("Datas inválidas")
 
-    df_periodo = df_hist[(df_hist["Data"] >= pd.to_datetime(ini)) & (df_hist["Data"] <= pd.to_datetime(fim))]
+        data_max = data_max_ts.date()
+        data_min = data_min_ts.date()
 
-    if df_periodo.empty:
-        st.warning("⚠️ Nenhum dado encontrado no período selecionado.")
-    else:
-        if len(df_periodo) >= 2:
-            anterior = df_periodo.iloc[-2]["Total Faltas"]
-            atual = df_periodo.iloc[-1]["Total Faltas"]
-            variacao = atual - anterior
-            pct = (variacao / anterior * 100) if anterior > 0 else 0
-            emoji = "🔺" if variacao > 0 else "✅"
-            st.markdown(f"**{emoji} Variação desde ontem:** {variacao:+} faltas ({pct:+.1f}%)")
+        default_ini = max(data_min, data_max - timedelta(days=7))
+        default_fim = data_max
+
+        col1, col2 = st.columns(2)
+        ini = col1.date_input("📅 De", value=default_ini, min_value=data_min, max_value=data_max, key="data_ini")
+        fim = col2.date_input("📅 Até", value=default_fim, min_value=data_min, max_value=data_max, key="data_fim")
+
+        df_periodo = df_hist[(df_hist["Data"] >= pd.to_datetime(ini)) & (df_hist["Data"] <= pd.to_datetime(fim))]
+
+        if df_periodo.empty:
+            st.warning("⚠️ Nenhum dado encontrado no período selecionado.")
         else:
-            st.info("ℹ️ Selecione pelo menos dois dias para exibir comparativo.")
+            if len(df_periodo) >= 2:
+                anterior = df_periodo.iloc[-2]["Total Faltas"]
+                atual = df_periodo.iloc[-1]["Total Faltas"]
+                variacao = atual - anterior
+                pct = (variacao / anterior * 100) if anterior > 0 else 0
+                emoji = "🔺" if variacao > 0 else "✅"
+                st.markdown(f"**{emoji} Variação desde ontem:** {variacao:+} faltas ({pct:+.1f}%)")
+            else:
+                st.info("ℹ️ Selecione pelo menos dois dias para exibir comparativo.")
 
-        st.markdown("### 📊 Evolução das Faltas")
-        graf = px.line(
-            df_periodo, x="Data", y="Total Faltas",
-            markers=True, title="Tendência de Faltas por Dia"
-        )
-        graf.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            xaxis_title="Data",
-            yaxis_title="Total de Faltas",
-            title_x=0.5,
-            height=500
-        )
-        st.plotly_chart(graf, use_container_width=True, key="graf_historico")
+            st.markdown("### 📊 Evolução das Faltas")
+            graf = px.line(
+                df_periodo, x="Data", y="Total Faltas",
+                markers=True, title="Tendência de Faltas por Dia"
+            )
+            graf.update_layout(
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                xaxis_title="Data",
+                yaxis_title="Total de Faltas",
+                title_x=0.5,
+                height=500
+            )
+            st.plotly_chart(graf, use_container_width=True, key="graf_historico")
 
-        st.markdown("### 📋 Tabela de Histórico")
-        st.dataframe(df_periodo.sort_values("Data"), use_container_width=True, height=300)
-        st.download_button("⬇️ Exportar Período Selecionado", df_periodo.to_csv(index=False).encode(), file_name="historico_periodo.csv", key="export_hist")
-
+            st.markdown("### 📋 Tabela de Histórico")
+            st.dataframe(df_periodo.sort_values("Data"), use_container_width=True, height=300)
+            st.download_button("⬇️ Exportar Período Selecionado", df_periodo.to_csv(index=False).encode(), file_name="historico_periodo.csv", key="export_hist")
+    except Exception as erro:
+        st.error(f"❌ Erro ao configurar filtro de datas: {erro}")
 # --- TAB 2: Alertas ---
 with tabs[2]:
     st.markdown("## 🚨 Alertas Inteligentes")
