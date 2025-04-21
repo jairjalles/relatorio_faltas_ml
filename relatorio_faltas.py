@@ -251,7 +251,7 @@ with tabs[0]:
                     background-color: rgba(255,255,255,0.07);
                     border-radius: 15px;
                     margin-top: 0px;
-                    margin-left: -20px;
+                    margin-left: -50px;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
                 '>
                     <h5 style='margin-bottom: 15px;'>🎯 <b>Filtros</b></h5>
