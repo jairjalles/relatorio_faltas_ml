@@ -135,15 +135,17 @@ try:
     df_raw = pd.read_excel(planilha, sheet_name="Geral", header=[4,5], dtype=str)
 
     contas, faltas = [], []
-    for (linha, conta) in df_raw.columns[4:]:
-        if isinstance(conta, str) and str(linha).isdigit():
-            contas.append(conta.strip().upper())
-            faltas.append(int(linha))
-    df_faltas = pd.DataFrame({
-        "Conta_Exibicao": contas,
-        "Faltas": faltas
-}).drop_duplicates("Conta_Exibicao")
-
+    def ler_faltas_linha5(path):
+    df_raw = pd.read_excel(path, sheet_name="Geral", header=None)
+    linha_faltas = df_raw.iloc[4, 4:]  # linha 5 (index 4), colunas E em diante
+    cabecalhos = df_raw.iloc[5, 4:]    # linha 6 (index 5), nomes das contas
+    contas, faltas = [], []
+    for val, conta in zip(linha_faltas, cabecalhos):
+        if pd.notna(val) and str(val).isdigit():
+            contas.append(str(conta).strip().upper())
+            faltas.append(int(val))
+    return pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
+    
     # Detalhado (long)
     cols = df_det.columns[4:]
     df_long = df_det.melt(
