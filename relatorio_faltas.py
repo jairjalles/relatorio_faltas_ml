@@ -120,35 +120,67 @@ try:
     df_raw = pd.read_excel(planilha, sheet_name="Geral", header=[4,5], dtype=str)
     df_det = pd.read_excel(planilha, sheet_name="Geral", header=5, dtype=str)
     # planilha "Base Criados"
-        # === leitura da aba Base Criados e normalização de colunas ===
-    df_base = pd.read_excel(planilha, sheet_name="Base Criados", header=2, dtype=str)
-    df_base.columns = [c.strip() for c in df_base.columns]
+    # === leitura da aba Base Criados e normalização de colunas ===
+       # ==== Base Criados: leitura com cabeçalho duplo para capturar contas ====
+    df_base = pd.read_excel(
+        planilha,
+        sheet_name="Base Criados",
+        header=[0,1],
+        dtype=str
+    )
 
-    # detecta automaticamente qual coluna contém 'conta' e qual é exatamente 'SKU'
-    conta_col = next((c for c in df_base.columns if "conta" in c.lower()), None)
-    sku_col   = next((c for c in df_base.columns if c.strip().lower() == "sku"), None)
-
-    if not conta_col or not sku_col:
-        st.error(f"Colunas esperadas não encontradas em 'Base Criados'. Colunas disponíveis: {df_base.columns.tolist()}")
+    # escolhe só as colunas cujo segundo nível de header seja 'SKU'
+    sku_cols = [col for col in df_base.columns if str(col[1]).strip().upper() == "SKU"]
+    if not sku_cols:
+        st.error(
+            "Não encontrei nenhuma coluna 'SKU' na aba Base Criados. "
+            f"Headers disponíveis: {df_base.columns.tolist()}"
+        )
         st.stop()
 
-    # renomeia para bater com df_long
-    df_base = df_base.rename(columns={
-        conta_col:       "Conta_Exibicao",
-        sku_col:         "SKU"
-    })
+    # derrete em formato long (conta x SKU)
+    df_base_long = (
+        df_base
+        .melt(
+            value_vars=sku_cols,
+            value_name="SKU",
+            var_name=["Conta_Exibicao","_"]
+        )
+        .loc[:, ["Conta_Exibicao","SKU"]]
+        .dropna()
+    )
 
-    # === merge para excluir SKUs já criados ===
+    # === agora faz o melt normal do detalhado ===
+    cols = df_det.columns[4:]
+    df_long = df_det.melt(
+        id_vars=["SKU","Estoque","Marca","Titulo"],
+        value_vars=cols,
+        var_name="Conta",
+        value_name="Check"
+    )
+    df_long["Conta_Exibicao"] = (
+        df_long["Conta"]
+        .str.split(".").str[0]
+        .str.upper().str.strip()
+    )
+
+    # === exclui da long todos os SKUs que já aparecem em df_base_long ===
     df_long = (
         df_long
         .merge(
-            df_base[["SKU","Conta_Exibicao"]].drop_duplicates(),
+            df_base_long.drop_duplicates(),
             on=["SKU","Conta_Exibicao"],
             how="left",
-            indicator="_merge"
+            indicator="_created_"
         )
-        .query("_merge == 'left_only'")
-        .drop(columns="_merge")
+        .query("_created_ == 'left_only'")
+        .drop(columns="_created_")
+    )
+
+    # === finalmente, marca falta quando Check == 0 ===
+    df_long["Faltas"] = (
+        df_long["Check"].fillna("0")
+        .apply(lambda x: 1 if str(x).strip() == "0" else 0)
     )
     # ==== FALTAS POR CONTA (linha 5) ====
     contas, faltas = [], []
