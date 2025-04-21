@@ -13,7 +13,6 @@ st.set_page_config(
     page_title="Dashboard de Faltas",
     initial_sidebar_state="expanded"
 )
-# Função para aplicar fundo com imagem JPEG translúcida
 def load_css(image_path):
     img_b64 = base64.b64encode(open(image_path, "rb").read()).decode()
     st.markdown(f"""
@@ -22,46 +21,108 @@ def load_css(image_path):
         background-image: url("data:image/png;base64,{img_b64}");
         background-size: cover;
         background-attachment: fixed;
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
     }}
 
-    /* Área principal com fundo suave */
     section.main > div {{
-        background-color: rgba(255, 255, 255, 0.10) !important;
+        background-color: rgba(255, 255, 255, 0.12) !important;
         border-radius: 20px;
-        padding: 30px;
+        padding: 25px;
         margin-top: 10px;
         backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        transition: all 0.4s ease-in-out;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }}
 
-    /* Estilo dos botões de abas */
-    .stTabs [data-baseweb="tab"] {{
-        font-size: 20px !important;
-        padding: 20px 35px !important;  /* Aumenta o tamanho */
-        min-height: 60px !important;    /* Altura mínima maior */
-        font-weight: 600 !important;
+    h1,h2,h3,h4,h5,h6,label,span,p {{
         color: white !important;
-        border-radius: 12px 12px 0 0 !important;
-        background-color: rgba(255,255,255,0.06) !important;
-        transition: all 0.3s ease-in-out;
-        margin-right: 10px;
+    }}
+
+    .stButton > button {{
+        background: linear-gradient(90deg, #235C9B, #012C4E) !important;
+        color: white !important;
+        font-weight: 600 !important;
+        font-size: 16px !important;
+        border-radius: 10px !important;
+        padding: 10px 20px !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }}
+
+    .stButton > button:hover {{
+        transform: scale(1.05);
+        box-shadow: 0 0 10px #50BFFF;
+    }}
+
+    .stTabs [data-baseweb="tab"] {{
+        font-size: 18px !important;
+        padding: 12px 24px !important;
+        font-weight: bold !important;
+        color: white !important;
+        border-radius: 10px 10px 0 0 !important;
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        transition: all 0.3s ease;
     }}
 
     .stTabs [data-baseweb="tab"]:hover {{
-        background-color: rgba(255,255,255,0.15) !important;
+        background-color: rgba(255, 255, 255, 0.15) !important;
         transform: translateY(-2px);
-        box-shadow: 0px 4px 8px rgba(80, 191, 255, 0.2);
     }}
 
     .stTabs [aria-selected="true"] {{
-        background-color: rgba(255,255,255,0.3) !important;
+        background-color: rgba(255, 255, 255, 0.25) !important;
         border-bottom: 4px solid #50BFFF !important;
         transform: scale(1.03);
-        font-weight: 700;
     }}
 
+    .custom-card {{
+        background-color: rgba(255, 255, 255, 0.07);
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+        animation: fadeIn 1s ease forwards;
+        opacity: 0;
+    }}
+
+    .custom-card:hover {{
+        transform: scale(1.04);
+        box-shadow: 0 6px 20px rgba(80, 191, 255, 0.4);
+    }}
+
+    .custom-card h3 {{
+        font-size: 20px;
+        margin-bottom: 10px;
+    }}
+
+    @keyframes fadeIn {{
+        0% {{ opacity: 0; transform: translateY(20px); }}
+        100% {{ opacity: 1; transform: translateY(0); }}
+    }}
+
+    .elemento-emoji::before {{
+        content: "📊 ";
+        margin-right: 5px;
+    }}
+
+    .metric-label {{
+        font-weight: 600;
+        color: #ffffff;
+        font-size: 15px;
+    }}
+
+    .dataframe th {{
+        background-color: #235C9B !important;
+        color: white !important;
+    }}
+
+    .dataframe td {{
+        background-color: rgba(255, 255, 255, 0.03);
+        color: white;
+    }}
+
+    .block-container {{
+        padding-top: 1rem;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
