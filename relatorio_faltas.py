@@ -19,14 +19,11 @@ def set_background(image_file):
         img64 = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
-        /* ===== Fundo com imagem ===== */
         .stApp {{
             background-image: url("data:image/png;base64,{img64}");
             background-size: cover;
             background-attachment: fixed;
         }}
-
-        /* ===== Caixa translúcida global ===== */
         section.main > div {{
             background-color: rgba(255, 255, 255, 0.08);
             border-radius: 18px;
@@ -37,13 +34,9 @@ def set_background(image_file):
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
             transition: all 0.4s ease-in-out;
         }}
-
-        /* ===== Texto branco global ===== */
         h1, h2, h3, h4, h5, h6, p, label, span {{
             color: white !important;
         }}
-
-        /* ===== Botões com hover ===== */
         .stButton > button {{
             background: linear-gradient(90deg,#235C9B,#012C4E) !important;
             color: white !important;
@@ -56,8 +49,6 @@ def set_background(image_file):
             transform: scale(1.05);
             box-shadow: 0 0 12px #50BFFF;
         }}
-
-        /* ===== Estilização das abas ===== */
         .stTabs [data-baseweb="tab"] {{
             font-size: 18px !important;
             padding: 12px 28px !important;
@@ -67,20 +58,16 @@ def set_background(image_file):
             background-color: rgba(255, 255, 255, 0.06) !important;
             transition: all 0.3s ease;
         }}
-
         .stTabs [aria-selected="true"] {{
             background-color: rgba(255, 255, 255, 0.25) !important;
             border-bottom: 4px solid #50BFFF !important;
             transform: scale(1.05);
         }}
-
         .stTabs [data-baseweb="tab"]:hover {{
             background-color: rgba(255, 255, 255, 0.15) !important;
             cursor: pointer;
             transform: translateY(-2px);
         }}
-
-        /* ===== Cards informativos com animação ===== */
         .custom-card {{
             background-color: rgba(255,255,255,0.07);
             padding: 20px;
@@ -89,7 +76,6 @@ def set_background(image_file):
             transition: all 0.3s ease-in-out;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }}
-
         .custom-card:hover {{
             transform: scale(1.03);
             box-shadow: 0 6px 20px rgba(80,191,255,0.4);
@@ -178,7 +164,7 @@ tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥
 with tabs[0]:
     if not df_long.empty and "Conta_Exibicao" in df_long.columns:
         contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
-        conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard")
+        conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard_1")
         df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
 
         # Hora com fuso do Brasil
@@ -270,7 +256,7 @@ with tabs[0]:
 with tabs[0]:
     if not df_long.empty and "Conta_Exibicao" in df_long.columns:
         contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
-        conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard")
+        conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard_2")
         df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
 
         # Hora com fuso do Brasil
