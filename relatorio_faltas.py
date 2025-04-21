@@ -1,5 +1,5 @@
 # Arquivo: dashboard_faltas_final.py
-# Autor: Jair Jales
+# Autor: Jair Jales - Versao Profissional com todas as melhorias
 
 import streamlit as st
 import pandas as pd
@@ -9,9 +9,9 @@ import os
 import getpass
 from datetime import datetime
 
-st.set_page_config(layout="wide", page_title="Dashboard de Faltas")
+st.set_page_config(layout="wide", page_title="Dashboard de Faltas", initial_sidebar_state="expanded")
 
-# ===== FUNDO PERSONALIZADO =====
+# ===== FUNDO PERSONALIZADO COM CAIXA OPACA =====
 def set_background(image_file):
     with open(image_file, "rb") as f:
         img64 = base64.b64encode(f.read()).decode()
@@ -22,10 +22,10 @@ def set_background(image_file):
             background-size: cover;
             background-attachment: fixed;
         }}
-        .stApp > div {{
-            background-color: rgba(255, 255, 255, 0.07);
-            padding: 20px;
-            border-radius: 12px;
+        .main > div {{
+            background-color: rgba(255,255,255,0.08);
+            padding: 2rem;
+            border-radius: 15px;
         }}
         h1,h2,h3,h4,h5,h6, label, p, div {{
             color: white !important;
@@ -37,7 +37,7 @@ def set_background(image_file):
         }}
         .stTabs [data-baseweb="tab"] {{
             font-size: 18px;
-            padding: 10px 20px;
+            padding: 10px 24px;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -56,12 +56,13 @@ with col_title:
     """, unsafe_allow_html=True)
 
 # ===== CAMINHO DO ARQUIVO =====
+st.markdown("📁 **Caminho da planilha sincronizada:**")
 col_path, col_btn = st.columns([5, 1])
-caminho = col_path.text_input("planilhas/", value="planilhas/FALTAS MERCADO LIVRE 2025.xlsx")
+caminho = col_path.text_input("", value="planilhas/FALTAS MERCADO LIVRE 2025.xlsx")
 atualizar = col_btn.button("🔄 Atualizar")
 
 if not os.path.isfile(caminho):
-    st.error("Caminho inválido. Verifique se a planilha está presente na pasta 'planilhas/' do projeto.")
+    st.error("Caminho inválido. Verifique se a planilha está na pasta correta.")
     st.stop()
 
 try:
@@ -112,68 +113,56 @@ usuario_local = getpass.getuser()
 tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"])
 
 with tabs[0]:
+    st.markdown("### 🔎 Visão Geral de Faltas")
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
-        <div class="card">
-            <h2>📦 Total de Faltas</h2>
-            <p style='font-size:30px'>{}</p>
-        </div>
-        """.format(df_faltas['Faltas'].sum()), unsafe_allow_html=True)
+        st.metric("📦 Total de Faltas", value=f"{faltas_atuais:,}")
     with col2:
-        st.markdown("""
-        <div class="card">
-            <h2>🏢 Contas Ativas</h2>
-            <p style='font-size:30px'>{}</p>
-        </div>
-        """.format(df_faltas['Conta_Exibicao'].nunique()), unsafe_allow_html=True)
+        st.metric("🏢 Contas Ativas", value=f"{df_faltas['Conta_Exibicao'].nunique()}")
 
-    conta_filtro = st.selectbox("📁 Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique()))
+    conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].unique()))
+    marca_filtro = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique()))
+
+    df_filtrado = df_long.copy()
     if conta_filtro != "Todas":
-        df_filtrado = df_long[df_long["Conta_Exibicao"] == conta_filtro]
-    else:
-        df_filtrado = df_long
+        df_filtrado = df_filtrado[df_filtrado["Conta_Exibicao"] == conta_filtro]
+    if marca_filtro != "Todas":
+        df_filtrado = df_filtrado[df_filtrado["Marca"] == marca_filtro]
 
-    st.markdown("### 📊 Faltas por Conta")
-    graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=True), x="Faltas", y="Conta_Exibicao", orientation="h",
-                         labels={"Faltas": "Faltas", "Conta_Exibicao": "Conta"}, color="Faltas")
-    graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
+    graf_contas = px.bar(df_faltas.sort_values("Faltas"), x="Faltas", y="Conta_Exibicao", orientation="h",
+                         color="Faltas", labels={"Faltas": "Faltas", "Conta_Exibicao": "Conta"},
+                         hover_data={"Faltas": True, "Conta_Exibicao": True})
+    graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)", hoverlabel=dict(bgcolor="#235C9B", font_size=16, font_color="white"))
     st.plotly_chart(graf_contas, use_container_width=True)
 
-    st.markdown("### 🏷️ Top Marcas com mais Faltas")
     top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
     st.plotly_chart(px.bar(top_marcas, x="Faltas", y="Marca", orientation="h", color="Faltas"), use_container_width=True)
 
-    st.markdown("### 📉 Contas com mais SKUs zerados")
-    top_contas = df_filtrado[df_filtrado["Faltas"] == 1].groupby("Conta_Exibicao")["SKU"].count().reset_index(name="SKUs Zerados")
-    st.plotly_chart(px.bar(top_contas, x="SKUs Zerados", y="Conta_Exibicao", orientation="h"), use_container_width=True)
-
-    st.markdown("### 📄 Tabela Geral")
+    st.markdown("### 📄 Tabela Detalhada por SKU")
     st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], use_container_width=True, height=400)
 
 with tabs[1]:
-    st.markdown("## 📈 Histórico de Faltas")
-    col_h1, col_h2 = st.columns(2)
-    data_inicio = col_h1.date_input("Data inicial", value=datetime.today())
-    data_fim = col_h2.date_input("Data final", value=datetime.today())
+    st.markdown("## 📈 Evolução das Faltas")
+    col1, col2 = st.columns(2)
+    data_inicio = col1.date_input("De", value=datetime.today())
+    data_fim = col2.date_input("Até", value=datetime.today())
     df_periodo = df_historico[(df_historico["Data"] >= pd.to_datetime(data_inicio)) & (df_historico["Data"] <= pd.to_datetime(data_fim))]
-    st.plotly_chart(px.line(df_periodo, x="Data", y="Total Faltas", markers=True), use_container_width=True)
+    graf_hist = px.line(df_periodo, x="Data", y="Total Faltas", markers=True)
+    st.plotly_chart(graf_hist, use_container_width=True)
 
 with tabs[2]:
-    st.markdown("## 🚨 Alertas")
-    alertas = df_faltas[df_faltas["Faltas"] >= 50]
-    st.write("🔴 Contas com 50+ faltas:")
-    st.dataframe(alertas)
-
-    st.write("🟠 SKUs com falta em 5+ contas:")
+    st.markdown("## 🚨 Alertas Inteligentes")
+    st.subheader("🔴 Contas com 50+ faltas")
+    st.dataframe(df_faltas[df_faltas["Faltas"] >= 50])
+    st.subheader("🟠 SKUs com falta em 5+ contas")
     skus_alerta = df_long[df_long["Faltas"] == 1].groupby("SKU")["Conta_Exibicao"].count().reset_index(name="Contas com Falta")
     st.dataframe(skus_alerta[skus_alerta["Contas com Falta"] >= 5])
 
 with tabs[3]:
-    st.markdown("## 📤 Exportações")
-    st.download_button("⬇️ Baixar Faltas", df_faltas.to_csv(index=False).encode("utf-8"), file_name="faltas.csv")
-    st.download_button("⬇️ Baixar Tabela Geral", df_long.to_csv(index=False).encode("utf-8"), file_name="detalhado.csv")
-    st.download_button("⬇️ Baixar Histórico", df_historico.to_csv(index=False).encode("utf-8"), file_name="historico.csv")
+    st.markdown("## 📥 Exportações")
+    st.download_button("⬇️ Faltas por Conta", df_faltas.to_csv(index=False).encode("utf-8"), file_name="faltas_por_conta.csv")
+    st.download_button("⬇️ Detalhado por SKU", df_long.to_csv(index=False).encode("utf-8"), file_name="faltas_detalhadas.csv")
+    st.download_button("⬇️ Histórico de Faltas", df_historico.to_csv(index=False).encode("utf-8"), file_name="historico_faltas.csv")
 
 with tabs[4]:
     st.markdown("## 📂 Base Criados")
@@ -185,18 +174,19 @@ with tabs[4]:
 
 with tabs[5]:
     st.markdown("## ⚙️ Configurações")
-    sku = st.text_input("🔍 Buscar SKU")
+    sku = st.text_input("🔍 Buscar SKU específico")
     if sku:
         resultado = df_long[df_long["SKU"].str.contains(sku, case=False, na=False)]
         st.dataframe(resultado)
 
+    st.markdown("### 🔁 Resetar Histórico")
     if st.button("🗑️ Limpar histórico local"):
         if os.path.exists(historico_path):
             os.remove(historico_path)
             st.success("Histórico deletado com sucesso!")
 
 with tabs[6]:
-    st.markdown("## 👤 Perfil")
+    st.markdown("## 👤 Perfil do Usuário")
     st.success(f"Usuário atual: **{usuario_local}**")
     st.markdown("**Função:** Desenvolvedor & Automatizador de Processos")
 
