@@ -54,7 +54,7 @@ def load_css(image_path):
 
     .stTabs [data-baseweb="tab"] {{
         font-size: 20px !important;
-        padding: 20px 40px !important;
+        padding: 30px 40px !important;
         font-weight: bold !important;
         color: white !important;
         border-radius: 10px 10px 0 0 !important;
