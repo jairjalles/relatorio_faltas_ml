@@ -224,6 +224,60 @@ with tabs[0]:
         height=400, use_container_width=True
     )
 
+# --- TAB 1: Histórico ---
+with tabs[1]:
+    st.markdown("## 📈 Histórico de Faltas por Dia")
+
+    # Filtros de data
+    col1, col2 = st.columns(2)
+    data_max = df_hist["Data"].max()
+    data_min = df_hist["Data"].min()
+
+    ini = col1.date_input("📅 De", value=data_max - timedelta(days=7), min_value=data_min, max_value=data_max, key="data_ini")
+    fim = col2.date_input("📅 Até", value=data_max, min_value=data_min, max_value=data_max, key="data_fim")
+
+    df_periodo = df_hist[(df_hist["Data"] >= pd.to_datetime(ini)) & (df_hist["Data"] <= pd.to_datetime(fim))]
+
+    if df_periodo.empty:
+        st.warning("⚠️ Nenhum dado encontrado no período selecionado.")
+    else:
+        # Comparativo com o dia anterior
+        if len(df_periodo) >= 2:
+            anterior = df_periodo.iloc[-2]["Total Faltas"]
+            atual = df_periodo.iloc[-1]["Total Faltas"]
+            variacao = atual - anterior
+            pct = (variacao / anterior * 100) if anterior > 0 else 0
+            emoji = "🔺" if variacao > 0 else "✅"
+            st.markdown(f"**{emoji} Variação desde ontem:** {variacao:+} faltas ({pct:+.1f}%)")
+        else:
+            st.info("ℹ️ Selecione pelo menos dois dias para exibir comparativo.")
+
+        # Gráfico
+        st.markdown("### 📊 Evolução das Faltas")
+        graf = px.line(
+            df_periodo, x="Data", y="Total Faltas",
+            markers=True, title="Tendência de Faltas por Dia"
+        )
+        graf.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            xaxis_title="Data",
+            yaxis_title="Total de Faltas",
+            title_x=0.5,
+            height=500
+        )
+        st.plotly_chart(graf, use_container_width=True, key="graf_historico")
+
+        # Tabela
+        st.markdown("### 📋 Tabela de Histórico")
+        st.dataframe(
+            df_periodo.sort_values("Data"),
+            use_container_width=True,
+            height=300
+        )
+
+        # Exportação
+        st.download_button("⬇️ Exportar Período Selecionado", df_periodo.to_csv(index=False).encode(), file_name="historico_periodo.csv", key="export_hist")
 
 # --- TAB 2: Alertas ---
 with tabs[2]:
