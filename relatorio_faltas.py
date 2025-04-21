@@ -24,35 +24,44 @@ def set_background(image_file):
             background-attachment: fixed;
         }}
 
-        /* Caixa translúcida global envolvendo o conteúdo */
-        .block-container {{
-            background-color: rgba(255, 255, 255, 0.10);
-            border-radius: 20px;
-            padding: 30px;
-            margin-top: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        /* Caixa translúcida apenas para os blocos principais */
+        section.main > div {{
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 20px 30px;
+            margin: 15px;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
         }}
 
-        /* Textos e títulos em branco */
+        /* Textos brancos */
         h1, h2, h3, h4, h5, h6, p, label, span {{
             color: white !important;
         }}
 
-        /* Botões */
+        /* Botões padrão */
         .stButton > button {{
-            background: linear-gradient(90deg,#235C9B,#012C4E)!important;
-            color: white!important;
-            font-weight: bold!important;
-            border-radius: 12px!important;
+            background: linear-gradient(90deg,#235C9B,#012C4E) !important;
+            color: white !important;
+            font-weight: bold !important;
+            border-radius: 12px !important;
         }}
 
-        /* Abas grandes e visíveis */
+        /* Estilo das abas maiores */
         .stTabs [data-baseweb="tab"] {{
-            font-size: 18px;
-            padding: 10px 24px;
+            font-size: 18px !important;
+            padding: 12px 30px !important;
+            font-weight: bold !important;
             color: white !important;
+            border-radius: 10px 10px 0 0 !important;
+            background-color: rgba(255, 255, 255, 0.05) !important;
+        }}
+
+        /* Aba ativa destacada */
+        .stTabs [aria-selected="true"] {{
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            border-bottom: 4px solid #50BFFF !important;
         }}
         </style>
     """, unsafe_allow_html=True)
