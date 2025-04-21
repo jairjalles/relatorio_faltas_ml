@@ -141,62 +141,49 @@ with tabs[0]:
         conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard")
         df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
 
-        # ==== CARDS RESUMO ====
+        # ==== CARDS ====
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown(f"""
+            st.markdown("""
                 <div style='background-color: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
                     <h3>📦 Total de Faltas</h3>
-                    <p style='font-size: 26px; font-weight: bold;'>{int(df_faltas["Faltas"].sum())}</p>
+                    <p style='font-size: 26px; font-weight: bold;'>{}</p>
                 </div>
-            """, unsafe_allow_html=True)
+            """.format(int(df_faltas["Faltas"].sum())), unsafe_allow_html=True)
+
         with col2:
-            st.markdown(f"""
+            st.markdown("""
                 <div style='background-color: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
                     <h3>🏬 Contas Ativas</h3>
-                    <p style='font-size: 26px; font-weight: bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p>
+                    <p style='font-size: 26px; font-weight: bold;'>{}</p>
                 </div>
-            """, unsafe_allow_html=True)
+            """.format(df_faltas["Conta_Exibicao"].nunique()), unsafe_allow_html=True)
 
-        # ==== GRÁFICO 1: Faltas por Conta ====
+        # ==== GRÁFICO DE CONTAS ====
         st.markdown("### 📊 Faltas por Conta")
         graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=True), 
                              x="Faltas", y="Conta_Exibicao", orientation="h",
-                             color="Faltas", text="Faltas",
-                             labels={"Faltas": "Faltas", "Conta_Exibicao": "Conta"})
-        graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-        graf_contas.update_traces(marker_line_width=1, textposition="outside")
+                             color="Faltas", text="Faltas")
+        graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
+        graf_contas.update_traces(textposition="outside")
         st.plotly_chart(graf_contas, use_container_width=True)
 
-        # ==== GRÁFICO 2: Top Marcas ====
-st.markdown("### 🏷️ Top Marcas com mais Faltas")
-top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index()
-top_marcas = top_marcas.sort_values("Faltas", ascending=False).head(10)
-
-graf_marcas = px.bar(
-    top_marcas,
-    x="Faltas",
-    y="Marca",
-    orientation="h",
-    color="Faltas",
-    text="Faltas",
-    labels={"Marca": "Marca", "Faltas": "Qtd. Faltas"}
-)
-graf_marcas.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    paper_bgcolor="rgba(0,0,0,0)",
-    hoverlabel=dict(bgcolor="#235C9B", font_size=14, font_color="white")
-)
-graf_marcas.update_traces(marker_line_width=1, textposition="outside")
-
-st.plotly_chart(graf_marcas, use_container_width=True)
+        # ==== GRÁFICO DE MARCAS ====
+        st.markdown("### 🏷️ Top Marcas com mais Faltas")
+        top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index()
+        top_marcas = top_marcas.sort_values("Faltas", ascending=False).head(10)
+        graf_marcas = px.bar(top_marcas, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
+        graf_marcas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
+        graf_marcas.update_traces(textposition="outside")
+        st.plotly_chart(graf_marcas, use_container_width=True)
 
         # ==== TABELA DETALHADA ====
-st.markdown("### 📋 Tabela Geral de Dados")
-st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
-            use_container_width=True, height=400)
- else:
-    st.warning("Nenhum dado disponível para exibir.")
+        st.markdown("### 📋 Tabela Geral de Dados")
+        st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
+                    use_container_width=True, height=400)
+
+    else:
+        st.warning("Nenhum dado disponível para exibir.")
 
 with tabs[1]:
     st.markdown("## 📈 Evolução das Faltas")
