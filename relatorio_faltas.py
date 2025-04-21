@@ -114,25 +114,28 @@ tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥
 with tabs[0]:
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
             <h2>📦 Total de Faltas</h2>
-            <p style='font-size:30px'>{}</p>
+            <p style='font-size:30px'>{df_faltas['Faltas'].sum()}</p>
         </div>
-        """.format(df_faltas['Faltas'].sum()), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
             <h2>🏢 Contas Ativas</h2>
-            <p style='font-size:30px'>{}</p>
+            <p style='font-size:30px'>{df_faltas['Conta_Exibicao'].nunique()}</p>
         </div>
-        """.format(df_faltas['Conta_Exibicao'].nunique()), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    conta_filtro = st.selectbox("📁 Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].unique()))
+    conta_filtro = st.selectbox("📁 Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique()))
+    marca_filtro = st.selectbox("🏷️ Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique()))
+
+    df_filtrado = df_long.copy()
     if conta_filtro != "Todas":
-        df_filtrado = df_long[df_long["Conta_Exibicao"] == conta_filtro]
-    else:
-        df_filtrado = df_long
+        df_filtrado = df_filtrado[df_filtrado["Conta_Exibicao"] == conta_filtro]
+    if marca_filtro != "Todas":
+        df_filtrado = df_filtrado[df_filtrado["Marca"] == marca_filtro]
 
     st.markdown("### 📊 Faltas por Conta")
     graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=True), x="Faltas", y="Conta_Exibicao", orientation="h",
