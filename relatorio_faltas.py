@@ -113,8 +113,7 @@ planilha = st.text_input(
 if not os.path.isfile(planilha):
     st.error("Caminho inválido. Verifique a localização do arquivo.")
     st.stop()
-
-# ===== LEITURA E TRANSFORMAÇÃO DOS DADOS =====
+    
 # ===== LEITURA E TRANSFORMAÇÃO DOS DADOS =====
 try:
     # leitura da aba Geral
@@ -132,15 +131,18 @@ try:
     df_base_long = df_base_long[["Conta_Exibicao", "SKU"]].dropna()
 
     # Faltas por conta
+    # LEITURA DA LINHA 5 COM AS FALTAS POR CONTA (valores usados na planilha Excel)
+    df_raw = pd.read_excel(planilha, sheet_name="Geral", header=[4,5], dtype=str)
+
     contas, faltas = [], []
-    for v, n in df_raw.columns[4:]:
-        if isinstance(n, str) and str(v).isdigit():
-            contas.append(n.strip().upper())
-            faltas.append(int(v))
+    for (linha, conta) in df_raw.columns[4:]:
+        if isinstance(conta, str) and str(linha).isdigit():
+            contas.append(conta.strip().upper())
+            faltas.append(int(linha))
     df_faltas = pd.DataFrame({
         "Conta_Exibicao": contas,
         "Faltas": faltas
-    }).drop_duplicates("Conta_Exibicao")
+}).drop_duplicates("Conta_Exibicao")
 
     # Detalhado (long)
     cols = df_det.columns[4:]
