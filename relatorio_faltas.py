@@ -17,56 +17,83 @@ def set_background(image_file):
         img64 = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
-        /* Fundo com imagem */
+        /* ===== Fundo com imagem ===== */
         .stApp {{
             background-image: url("data:image/png;base64,{img64}");
             background-size: cover;
             background-attachment: fixed;
         }}
 
-        /* Caixa translúcida apenas para os blocos principais */
+        /* ===== Caixa translúcida global ===== */
         section.main > div {{
             background-color: rgba(255, 255, 255, 0.08);
             border-radius: 18px;
-            padding: 20px 30px;
-            margin: 15px;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            padding: 25px;
+            margin-top: 10px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: all 0.4s ease-in-out;
         }}
 
-        /* Textos brancos */
+        /* ===== Texto branco global ===== */
         h1, h2, h3, h4, h5, h6, p, label, span {{
             color: white !important;
         }}
 
-        /* Botões padrão */
+        /* ===== Botões com hover ===== */
         .stButton > button {{
             background: linear-gradient(90deg,#235C9B,#012C4E) !important;
             color: white !important;
             font-weight: bold !important;
             border-radius: 12px !important;
+            transition: all 0.3s ease;
+        }}
+        .stButton > button:hover {{
+            background: linear-gradient(90deg,#3D8BFF,#235C9B) !important;
+            transform: scale(1.05);
+            box-shadow: 0 0 12px #50BFFF;
         }}
 
-        /* Estilo das abas maiores */
+        /* ===== Estilização das abas ===== */
         .stTabs [data-baseweb="tab"] {{
             font-size: 18px !important;
-            padding: 12px 30px !important;
+            padding: 12px 28px !important;
             font-weight: bold !important;
             color: white !important;
             border-radius: 10px 10px 0 0 !important;
-            background-color: rgba(255, 255, 255, 0.05) !important;
+            background-color: rgba(255, 255, 255, 0.06) !important;
+            transition: all 0.3s ease;
         }}
 
-        /* Aba ativa destacada */
         .stTabs [aria-selected="true"] {{
-            background-color: rgba(255, 255, 255, 0.2) !important;
+            background-color: rgba(255, 255, 255, 0.25) !important;
             border-bottom: 4px solid #50BFFF !important;
+            transform: scale(1.05);
+        }}
+
+        .stTabs [data-baseweb="tab"]:hover {{
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            cursor: pointer;
+            transform: translateY(-2px);
+        }}
+
+        /* ===== Cards informativos com animação ===== */
+        .custom-card {{
+            background-color: rgba(255,255,255,0.07);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }}
+
+        .custom-card:hover {{
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(80,191,255,0.4);
         }}
         </style>
     """, unsafe_allow_html=True)
-
-set_background("fundo_interface.jpeg")
 
 st.markdown("""
     <style>
