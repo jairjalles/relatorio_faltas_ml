@@ -1,5 +1,5 @@
 # Arquivo: dashboard_faltas_final.py
-# Autor: Jair Jales - Versao Profissional com todas as melhorias
+# Autor: Jair Jales - Versao Profissional com todas as melhorias e ajustes finais
 
 import streamlit as st
 import pandas as pd
@@ -58,7 +58,7 @@ with col_title:
 # ===== CAMINHO DO ARQUIVO =====
 st.markdown("📁 **Caminho da planilha sincronizada:**")
 col_path, col_btn = st.columns([5, 1])
-caminho = col_path.text_input("", value="planilhas/FALTAS MERCADO LIVRE 2025.xlsx")
+caminho = col_path.text_input("planilhas/", value="planilhas/FALTAS MERCADO LIVRE 2025.xlsx")
 atualizar = col_btn.button("🔄 Atualizar")
 
 if not os.path.isfile(caminho):
@@ -70,16 +70,13 @@ try:
     df_detalhado = pd.read_excel(caminho, sheet_name="Geral", header=5, dtype=str)
     df_base = pd.read_excel(caminho, sheet_name="Base Criados", header=2, dtype=str)
 
-    contas = []
-    faltas = []
+    contas, faltas = [], []
     for col in df_raw.columns[4:]:
         valor, nome = col
-        if isinstance(nome, str) and isinstance(valor, (int, float, str)) and str(valor).isdigit():
-            nome_limpo = str(nome).split('.')[0].strip().upper()
-            contas.append(nome_limpo)
+        if isinstance(nome, str) and str(valor).isdigit():
+            contas.append(str(nome).split('.')[0].strip().upper())
             faltas.append(int(valor))
-    df_faltas = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas})
-    df_faltas = df_faltas.drop_duplicates(subset="Conta_Exibicao", keep="first")
+    df_faltas = pd.DataFrame({"Conta_Exibicao": contas, "Faltas": faltas}).drop_duplicates("Conta_Exibicao")
 
     colunas_validas = df_detalhado.columns[4:]
     df_long = df_detalhado.melt(id_vars=["SKU", "Estoque", "Marca", "Titulo"], value_vars=colunas_validas,
@@ -93,7 +90,7 @@ except Exception as e:
 # ===== HISTÓRICO =====
 historico_path = "historico_faltas.csv"
 hoje = datetime.today().strftime('%Y-%m-%d')
-faltas_atuais = int(df_faltas["Faltas"].sum())
+faltas_atuais = df_faltas["Faltas"].sum()
 
 if os.path.exists(historico_path):
     df_historico = pd.read_csv(historico_path)
@@ -113,81 +110,35 @@ usuario_local = getpass.getuser()
 tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"])
 
 with tabs[0]:
-   with tabs[0]:
-    if not df_long.empty and "Conta_Exibicao" in df_long.columns:
-        contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
-        conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas))
-        df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
-
-        # ==== CARDS RESUMO ====
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-                <div style='background-color: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
-                    <h3>📦 Total de Faltas</h3>
-                    <p style='font-size: 26px; font-weight: bold;'>{}</p>
-                </div>
-            """.format(int(df_faltas["Faltas"].sum())), unsafe_allow_html=True)
-
-        with col2:
-            st.markdown("""
-                <div style='background-color: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; text-align: center;'>
-                    <h3>🏬 Contas Ativas</h3>
-                    <p style='font-size: 26px; font-weight: bold;'>{}</p>
-                </div>
-            """.format(df_faltas["Conta_Exibicao"].nunique()), unsafe_allow_html=True)
-
-        st.markdown("### 📊 Faltas por Conta")
-        graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=True), 
-                             x="Faltas", y="Conta_Exibicao", orientation="h",
-                             color="Faltas", text="Faltas",
-                             labels={"Faltas": "Faltas", "Conta_Exibicao": "Conta"})
-        graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-        graf_contas.update_traces(marker_line_width=1, textposition="outside")
-        st.plotly_chart(graf_contas, use_container_width=True)
-
-        st.markdown("### 🏷️ Top Marcas com mais Faltas")
-        top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index()
-        top_marcas = top_marcas.sort_values("Faltas", ascending=False).head(10)
-        graf_marcas = px.bar(top_marcas, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
-        graf_marcas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
-        graf_marcas.update_traces(marker_line_width=1, textposition="outside")
-        st.plotly_chart(graf_marcas, use_container_width=True)
-
-        st.markdown("### 📋 Tabela Geral de Dados")
-        st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
-                     use_container_width=True, height=400)
-
-    else:
-        st.warning("Nenhum dado disponível na planilha para exibir gráficos ou tabelas.")
-
-    # ===== FILTROS DINÂMICOS COM PROTEÇÃO =====
-if "Conta_Exibicao" in df_long.columns and not df_long.empty:
     contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
-    conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas))
+    conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="conta_select")
     df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
-else:
-    st.warning("Nenhum dado disponível para exibir.")
-    df_filtrado = pd.DataFrame()
 
-    marca_filtro = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique()))
-
-    df_filtrado = df_long.copy()
-    if conta_filtro != "Todas":
-        df_filtrado = df_filtrado[df_filtrado["Conta_Exibicao"] == conta_filtro]
+    marca_filtro = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique()), key="marca_select")
     if marca_filtro != "Todas":
         df_filtrado = df_filtrado[df_filtrado["Marca"] == marca_filtro]
 
-    graf_contas = px.bar(df_faltas.sort_values("Faltas"), x="Faltas", y="Conta_Exibicao", orientation="h",
-                         color="Faltas", labels={"Faltas": "Faltas", "Conta_Exibicao": "Conta"},
-                         hover_data={"Faltas": True, "Conta_Exibicao": True})
-    graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)", hoverlabel=dict(bgcolor="#235C9B", font_size=16, font_color="white"))
+    col1, col2 = st.columns(2)
+    col1.metric("📦 Total de Faltas", int(df_faltas["Faltas"].sum()))
+    col2.metric("🏬 Contas Ativas", df_faltas["Conta_Exibicao"].nunique())
+
+    st.markdown("### 📊 Faltas por Conta")
+    graf_contas = px.bar(df_faltas.sort_values("Faltas", ascending=True),
+                         x="Faltas", y="Conta_Exibicao", orientation="h",
+                         color="Faltas", text="Faltas",
+                         labels={"Faltas": "Faltas", "Conta_Exibicao": "Conta"})
+    graf_contas.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+    graf_contas.update_traces(marker_line_width=1, textposition="outside")
     st.plotly_chart(graf_contas, use_container_width=True)
 
+    st.markdown("### 🏷️ Top Marcas com mais Faltas")
     top_marcas = df_filtrado.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas", ascending=False).head(10)
-    st.plotly_chart(px.bar(top_marcas, x="Faltas", y="Marca", orientation="h", color="Faltas"), use_container_width=True)
+    graf_marcas = px.bar(top_marcas, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
+    graf_marcas.update_layout(plot_bgcolor="rgba(0,0,0,0)")
+    graf_marcas.update_traces(marker_line_width=1, textposition="outside")
+    st.plotly_chart(graf_marcas, use_container_width=True)
 
-    st.markdown("### 📄 Tabela Detalhada por SKU")
+    st.markdown("### 📋 Tabela Geral de Dados")
     st.dataframe(df_filtrado[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]], use_container_width=True, height=400)
 
 with tabs[1]:
