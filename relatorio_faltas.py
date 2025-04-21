@@ -121,7 +121,6 @@ try:
     df_det = pd.read_excel(planilha, sheet_name="Geral", header=5, dtype=str)
     df_base = pd.read_excel(planilha, sheet_name="Base Criados", header=2, dtype=str)
 
-    # Faltas por conta
     contas, faltas = [], []
     for v, n in df_raw.columns[4:]:
         if isinstance(n, str) and str(v).isdigit():
@@ -132,7 +131,6 @@ try:
         "Faltas": faltas
     }).drop_duplicates("Conta_Exibicao")
 
-    # Dados longos por SKU
     cols = df_det.columns[4:]
     df_long = df_det.melt(
         id_vars=["SKU","Estoque","Marca","Titulo"],
@@ -183,19 +181,16 @@ with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
     else:
-        # data/hora local
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
 
-        # comparativo semanal
         semana = (datetime.now(tz) - timedelta(days=7)).strftime("%Y-%m-%d")
         prev = df_hist.loc[df_hist["Data"] == semana, "Total Faltas"].sum()
         diff = tot_hoje - prev
-        pct = (diff/prev*100) if prev>0 else 0
-        emoji = "🔺" if pct>0 else "✅"
+        pct = (diff/prev*100) if prev > 0 else 0
+        emoji = "🔺" if pct > 0 else "✅"
         msg_sem = f"{emoji} {'Aumento' if pct>0 else 'Redução'} de {abs(pct):.1f}% desde semana passada"
 
-        # SKU crítico
         imp = (
             df_long[df_long["Faltas"]==1]
             .groupby("SKU")["Conta_Exibicao"]
@@ -207,11 +202,9 @@ with tabs[0]:
             if not imp.empty else "✅ Nenhum SKU crítico hoje"
         )
 
-        # SKUs hoje
         skus_hj = df_long[df_long["Faltas"]==1]["SKU"].nunique()
         msg_skus = f"🆕 {skus_hj} SKUs com falta hoje"
 
-        # CARDS
         st.markdown(f"""
         <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
           <div class='custom-card'><h3>📦 Total de Faltas</h3><p style='font-size:26px;font-weight:bold;'>{tot_hoje}</p></div>
@@ -228,7 +221,7 @@ with tabs[0]:
         </div>
         """, unsafe_allow_html=True)
 
-        # FILTROS lado a lado
+        # filtros lado a lado
         st.markdown(
             "<div style='background-color:rgba(255,255,255,0.07);padding:20px;border-radius:15px;margin-bottom:20px;'>",
             unsafe_allow_html=True
@@ -246,7 +239,6 @@ with tabs[0]:
         if marca_sel != "Todas":
             df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
-        # GRÁFICO CONTAS
         st.markdown("### 📊 Faltas por Conta")
         g1 = px.bar(
             df_faltas.sort_values("Faltas"),
@@ -257,7 +249,6 @@ with tabs[0]:
         g1.update_traces(textposition="outside")
         st.plotly_chart(g1, use_container_width=True, key="g_contas")
 
-        # GRÁFICO MARCAS
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
         top_m = (
             df_fil.groupby("Marca")["Faltas"]
@@ -273,7 +264,6 @@ with tabs[0]:
         g2.update_traces(textposition="outside")
         st.plotly_chart(g2, use_container_width=True, key="g_marcas")
 
-        # TABELA DETALHADA
         st.markdown("### 📋 Tabela Geral de Dados")
         st.dataframe(
             df_fil[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]],
