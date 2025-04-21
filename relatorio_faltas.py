@@ -225,7 +225,6 @@ with tabs[0]:
     )
 
 # --- TAB 1: Histórico ---
-# --- TAB 1: Histórico ---
 with tabs[1]:
     st.markdown("## 📈 Histórico de Faltas por Dia")
 
@@ -233,15 +232,19 @@ with tabs[1]:
         st.warning("Histórico vazio.")
         st.stop()
 
+    # Obtem os timestamps diretamente do DataFrame
+    data_max_ts = pd.to_datetime(df_hist["Data"].max())
+    data_min_ts = pd.to_datetime(df_hist["Data"].min())
+
     # Converte para datetime.date com fallback seguro
     try:
-       data_max = pd.to_datetime(data_max_ts).date() if not pd.isna(data_max_ts) else datetime.today().date()
-       data_min = pd.to_datetime(data_min_ts).date() if not pd.isna(data_min_ts) else (datetime.today() - timedelta(days=7)).date()
-        
+        data_max = data_max_ts.date() if not pd.isna(data_max_ts) else datetime.today().date()
+        data_min = data_min_ts.date() if not pd.isna(data_min_ts) else (datetime.today() - timedelta(days=7)).date()
     except:
         st.warning("⚠️ Erro ao converter datas do histórico.")
         st.stop()
 
+    # Filtros
     col1, col2 = st.columns(2)
     ini = col1.date_input("📅 De", value=data_max - timedelta(days=7), min_value=data_min, max_value=data_max, key="data_ini")
     fim = col2.date_input("📅 Até", value=data_max, min_value=data_min, max_value=data_max, key="data_fim")
@@ -262,7 +265,7 @@ with tabs[1]:
         else:
             st.info("ℹ️ Selecione pelo menos dois dias para exibir comparativo.")
 
-        # Gráfico de linha
+        # Gráfico
         st.markdown("### 📊 Evolução das Faltas")
         graf = px.line(
             df_periodo, x="Data", y="Total Faltas",
@@ -288,7 +291,6 @@ with tabs[1]:
 
         # Exportação
         st.download_button("⬇️ Exportar Período Selecionado", df_periodo.to_csv(index=False).encode(), file_name="historico_periodo.csv", key="export_hist")
-
 # --- TAB 2: Alertas ---
 with tabs[2]:
     st.markdown("## 🚨 Alertas Inteligentes")
