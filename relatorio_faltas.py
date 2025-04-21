@@ -245,13 +245,14 @@ with tabs[0]:
         # ----------- FILTROS -----------
         with col_filtros:
             st.markdown("""
-            <div style='padding: 20px; background-color: rgba(255,255,255,0.08); border-radius: 15px; margin-top: 10px;'>
-            <h4 style='margin-bottom: 20px;'>🎯 <b>Filtros</b></h4>
-            st.markdown("<p style='margin-top:15px;margin-bottom:5px;'> 📁 Filtrar por Conta</p>", unsafe_allow_html=True)
-            conta_sel = st.selectbox("", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
-            st.markdown("<p style='margin-top:15px;margin-bottom:5px;'>🏷️ Filtrar por Marca</p>", unsafe_allow_html=True)
-            marca_sel = st.selectbox("", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
-            st.markdown("</div>", unsafe_allow_html=True)
+                <div style='padding: 20px; background-color: rgba(255,255,255,0.08); border-radius: 15px; margin-top: 8px;'>
+                    <h4 style='margin-bottom: 20px;'>🎯 <b>Filtros</b></h4>
+                """, unsafe_allow_html=True)
+
+                conta_sel = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
+                marca_sel = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
+
+                st.markdown("</div>", unsafe_allow_html=True)  # <-- ESTA LINHA fecha corretamente o HTML e a string
 
         # ----------- APLICAR FILTROS -----------
         df_fil = df_long.copy()
