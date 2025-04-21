@@ -250,10 +250,10 @@ with tabs[0]:
             """, unsafe_allow_html=True)
 
        # 🔸 Bloco dos filtros (coluna direita)
-         with linha[1]:
-             st.markdown("### 🎯 Filtros")
-             conta_sel = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
-             marca_sel = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
+           with linha[1]:
+               st.markdown("### 🎯 Filtros")
+               conta_sel = st.selectbox("📁 Filtrar por Conta", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
+               marca_sel = st.selectbox("🏷️ Filtrar por Marca", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
 
         df_fil = df_long.copy()
         if conta_sel != "Todas":
