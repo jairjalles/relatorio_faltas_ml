@@ -145,7 +145,7 @@ try:
         .str.upper().str.strip()
     )
     df_long["Faltas"] = df_long["Check"].fillna("0")
-                              .apply(lambda x: 1 if str(x).strip()=="0" else 0)
+    .apply(lambda x: 1 if str(x).strip()=="0" else 0)
 
 except Exception as e:
     st.error(f"Erro ao processar a planilha: {e}")
