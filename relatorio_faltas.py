@@ -12,7 +12,9 @@ st.set_page_config(
     layout="wide",
     page_title="Dashboard de Faltas",
     initial_sidebar_state="expanded"
-)def load_css(image_path):
+)
+
+def load_css(image_path):
     img_b64 = base64.b64encode(open(image_path, "rb").read()).decode()
     st.markdown(f"""
     <style>
