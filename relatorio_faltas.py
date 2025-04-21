@@ -47,7 +47,7 @@ set_background("fundo_interface.jpeg")
 st.markdown("""
     <style>
     .main > div {{
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: rgba(255, 255, 255, 0.10);
         border-radius: 16px;
         padding: 30px;
     }}
