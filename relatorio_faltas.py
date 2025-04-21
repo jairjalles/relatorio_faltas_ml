@@ -265,7 +265,7 @@ if conta_sel != "Todas":
 if marca_sel != "Todas":
     df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
-        st.markdown("### 📊 Faltas por Conta")
+st.markdown("### 📊 Faltas por Conta")
         g1 = px.bar(
             df_faltas.sort_values("Faltas"),
             x="Faltas", y="Conta_Exibicao", orientation="h",
