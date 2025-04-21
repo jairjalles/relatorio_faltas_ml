@@ -98,30 +98,31 @@ with col1:
 with col2:
     st.markdown("""
     <div style='display:flex;align-items:center;height:200px;'>
-        <h1 style='margin:0;'>📊 Dashboard de Faltas - Mercado Livre</h1>
+        <h1 style='margin:0;'>📊 Dashboard de Faltas – Mercado Livre</h1>
     </div>
     """, unsafe_allow_html=True)
 
 # ===== CAMINHO DA PLANILHA EDITÁVEL =====
 st.markdown("📁 **Caminho da planilha sincronizada:**")
 planilha = st.text_input(
-    "", 
+    "",
     value=st.session_state.get("input_path", "planilhas/FALTAS MERCADO LIVRE 2025.xlsx"),
     key="input_path"
 )
-# ao mudar o text_input, o Streamlit já re-executa o script
-
+# o Streamlit re-executa automaticamente ao editar este campo
 if not os.path.isfile(planilha):
     st.error("Caminho inválido. Verifique a localização do arquivo.")
     st.stop()
 
 # ===== LEITURA E TRANSFORMAÇÃO DOS DADOS =====
 try:
+    # planilha "Geral"
     df_raw = pd.read_excel(planilha, sheet_name="Geral", header=[4,5], dtype=str)
     df_det = pd.read_excel(planilha, sheet_name="Geral", header=5, dtype=str)
+    # planilha "Base Criados"
     df_base = pd.read_excel(planilha, sheet_name="Base Criados", header=2, dtype=str)
 
-    # Faltas por conta
+    # ==== FALTAS POR CONTA (linha 5) ====
     contas, faltas = [], []
     for v, n in df_raw.columns[4:]:
         if isinstance(n, str) and str(v).isdigit():
@@ -132,7 +133,7 @@ try:
         "Faltas": faltas
     }).drop_duplicates("Conta_Exibicao")
 
-    # Detalhado (long)
+    # ==== DETALHADO LONG + FILTRO BASE CRIADOS ====
     cols = df_det.columns[4:]
     df_long = df_det.melt(
         id_vars=["SKU","Estoque","Marca","Titulo"],
@@ -143,6 +144,16 @@ try:
         df_long["Conta"].str.split(".").str[0]
                  .str.upper().str.strip()
     )
+    # merge para remover SKUs já criados
+    df_long = df_long.merge(
+        df_base.rename(columns={"Conta_Exibicao":"Conta_Exibicao","SKU":"SKU"})[["SKU","Conta_Exibicao"]]
+          .drop_duplicates(),
+        on=["SKU","Conta_Exibicao"],
+        how="left",
+        indicator=True
+    )
+    df_long = df_long[df_long["_merge"]=="left_only"].drop(columns="_merge")
+    # agora sim faltas = estoque 0 & não criado
     df_long["Faltas"] = (
         df_long["Check"].fillna("0")
                  .apply(lambda x: 1 if str(x).strip()=="0" else 0)
@@ -182,7 +193,7 @@ with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
     else:
-        # cards informativos
+        # ==== CARDS ====
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
         st.markdown(f"""
@@ -202,7 +213,7 @@ with tabs[0]:
         </div>
         """, unsafe_allow_html=True)
 
-        # filtros lado a lado (conta + marca)
+        # ==== FILTROS (conta + marca) ====
         st.markdown(
             "<div style='background-color:rgba(255,255,255,0.07);"
             "padding:20px;border-radius:15px;margin-bottom:20px;'>",
@@ -222,10 +233,11 @@ with tabs[0]:
         if marca_sel != "Todas":
             df_fil = df_fil[df_fil["Marca"] == marca_sel]
 
-        # gráfico de faltas por conta (com filtro aplicado)
+        # ==== GRÁFICO: Faltas por Conta ====
         st.markdown("### 📊 Faltas por Conta")
         g1 = px.bar(
-            df_fil.groupby("Conta_Exibicao")["Faltas"].sum().reset_index().sort_values("Faltas"),
+            df_fil.groupby("Conta_Exibicao")["Faltas"].sum()
+                  .reset_index().sort_values("Faltas"),
             x="Faltas", y="Conta_Exibicao", orientation="h",
             color="Faltas", text="Faltas"
         )
@@ -233,24 +245,24 @@ with tabs[0]:
         g1.update_traces(textposition="outside")
         st.plotly_chart(g1, use_container_width=True, key="g_contas")
 
-        # gráfico top marcas
+        # ==== GRÁFICO: Top Marcas ====
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
         top_m = (
-            df_fil.groupby("Marca")["Faltas"]
-            .sum().reset_index()
-            .sort_values("Faltas", ascending=False)
-            .head(10)
+            df_fil.groupby("Marca")["Faltas"].sum()
+                  .reset_index().sort_values("Faltas", ascending=False)
+                  .head(10)
         )
-        g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h", color="Faltas", text="Faltas")
+        g2 = px.bar(top_m, x="Faltas", y="Marca", orientation="h",
+                    color="Faltas", text="Faltas")
         g2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
         g2.update_traces(textposition="outside")
         st.plotly_chart(g2, use_container_width=True, key="g_marcas")
 
-        # tabela detalhada
+        # ==== TABELA DETALHADA ====
         st.markdown("### 📋 Tabela Geral de Dados")
         st.dataframe(
             df_fil[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]],
-            use_container_width=True, height=400
+            height=400, use_container_width=True
         )
 
 # --- TAB 1: Histórico ---
@@ -282,7 +294,7 @@ with tabs[3]:
     st.markdown("## 📥 Exportações")
     st.download_button("⬇️ Faltas por Conta", df_faltas.to_csv(index=False).encode(), file_name="faltas.csv", key="e1")
     st.download_button("⬇️ Detalhado por SKU", df_long.to_csv(index=False).encode(), file_name="detalhado.csv", key="e2")
-    st.download_button("⬇️ Histórico", df_hist.to_csv(index=False).encode(), file_name="hist.csv", key="e3")
+    st.download_button("⬇️ Histórico", df_hist.to_csv(index=False).encode(), file_name="historico.csv", key="e3")
 
 # --- TAB 4: Base Criados ---
 with tabs[4]:
