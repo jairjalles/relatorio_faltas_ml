@@ -206,25 +206,20 @@ with tabs[0]:
     except Exception as erro:
         st.error(f"Erro ao gerar gráfico: {erro}")
 
+        # gráfico marcas filtradas
+        st.markdown("### 🏷️ Top Marcas com mais Faltas")
+        top_m = df_fil.groupby("Marca")["Faltas"].sum().reset_index().sort_values("Faltas",ascending=False).head(10)
+        g2 = px.bar(top_m,x="Faltas",y="Marca",orientation="h",color="Faltas",text="Faltas")
+        g2.update_layout(plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
+        g2.update_traces(textposition="outside")
+        st.plotly_chart(g2,use_container_width=True,key="g_marcas")
+
         # ==== TABELA DETALHADA ====
         st.markdown("### 📋 Tabela Geral de Dados")
         st.dataframe(
             df_fil[["SKU","Titulo","Estoque","Marca","Conta_Exibicao","Faltas"]],
             height=400, use_container_width=True
-        )
-
-# --- TAB 1: Histórico ---
-# GRÁFICO DE FALTAS POR CONTA — leitura direta da linha 5
-st.markdown("### 📊 Faltas por Conta")
-g1 = px.bar(
-    df_faltas.sort_values("Faltas", ascending=True),
-    x="Faltas", y="Conta_Exibicao", orientation="h",
-    color="Faltas", text="Faltas"
-)
-g1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-g1.update_traces(textposition="outside")
-st.plotly_chart(g1, use_container_width=True, key="g_contas")
-
+        s
 # --- TAB 2: Alertas ---
 with tabs[2]:
     st.markdown("## 🚨 Alertas Inteligentes")
