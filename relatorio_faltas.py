@@ -177,13 +177,14 @@ tabs = st.tabs(["📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas", "📥
 
 with tabs[0]:
     if not df_long.empty and "Conta_Exibicao" in df_long.columns:
-    contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
-    conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard")
-    df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
-# Hora com fuso do Brasil
-fuso_br = pytz.timezone("America/Sao_Paulo")
-agora = datetime.now(fuso_br)
-ultima_atualizacao = agora.strftime("%d/%m/%Y %H:%M")
+        contas_unicas = sorted(df_long["Conta_Exibicao"].dropna().unique())
+        conta_filtro = st.selectbox("📁 Filtrar por Conta", ["Todas"] + list(contas_unicas), key="filtro_conta_dashboard")
+        df_filtrado = df_long if conta_filtro == "Todas" else df_long[df_long["Conta_Exibicao"] == conta_filtro]
+
+        # Hora com fuso do Brasil
+        fuso_br = pytz.timezone("America/Sao_Paulo")
+        agora = datetime.now(fuso_br)
+        ultima_atualizacao = agora.strftime("%d/%m/%Y %H:%M")
 
 # Comparativo semanal
 semana_passada = (agora - timedelta(days=7)).strftime("%Y-%m-%d")
