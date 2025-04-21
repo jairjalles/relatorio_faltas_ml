@@ -205,7 +205,7 @@ with tabs[0]:
             height=1000  # 👈 aumenta o tamanho do gráfico
         )
         g1.update_traces(textposition="outside")
-        st.plotly_chart(g1, use_container_width=True, key="g_contas")
+        st.plotly_chart(g1, key="g_contas")  # sem o use_container_width
 
     except Exception as erro:
         st.error(f"Erro ao gerar gráfico: {erro}")
@@ -224,8 +224,8 @@ with tabs[0]:
         df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
         height=400, use_container_width=True
     )
-    
-# --- TAB 2: Alertas ---
+
+
 # --- TAB 2: Alertas ---
 with tabs[2]:
     st.markdown("## 🚨 Alertas Inteligentes")
