@@ -233,14 +233,13 @@ with tabs[1]:
         st.stop()
 
     # Obtem os timestamps diretamente do DataFrame
-    data_max_ts = pd.to_datetime(df_hist["Data"].max())
-    data_min_ts = pd.to_datetime(df_hist["Data"].min())
-
     try:
+        data_max_ts = pd.to_datetime(df_hist["Data"].max())
+        data_min_ts = pd.to_datetime(df_hist["Data"].min())
         data_max = data_max_ts.date() if not pd.isna(data_max_ts) else datetime.today().date()
         data_min = data_min_ts.date() if not pd.isna(data_min_ts) else (datetime.today() - timedelta(days=7)).date()
-    except:
-        st.warning("⚠️ Erro ao converter datas do histórico.")
+    except Exception as e:
+        st.warning(f"⚠️ Erro ao converter datas do histórico: {e}")
         st.stop()
 
     col1, col2 = st.columns(2)
@@ -280,18 +279,15 @@ with tabs[1]:
         st.markdown("### 📋 Tabela de Histórico")
         st.dataframe(df_periodo.sort_values("Data"), use_container_width=True, height=300)
         st.download_button("⬇️ Exportar Período Selecionado", df_periodo.to_csv(index=False).encode(), file_name="historico_periodo.csv", key="export_hist")
-        
+
 # --- TAB 2: Alertas ---
 with tabs[2]:
     st.markdown("## 🚨 Alertas Inteligentes")
 
-    # Contas com muitas faltas
     st.subheader("🔴 Contas com 50+ faltas")
     st.dataframe(df_faltas.query("Faltas>=50"), use_container_width=True)
 
-    # SKUs com falta em 5+ contas
     st.subheader("🟠 SKUs com Falta em 5+ Contas")
-
     sa = (
         df_long[df_long["Faltas"] == 1]
         .groupby("SKU")["Conta_Exibicao"]
@@ -303,7 +299,6 @@ with tabs[2]:
         .query("Total >= 5")
     )
 
-    # Adiciona emoji visual
     def alerta_emoji(total):
         if total >= 10:
             return "📛 " + str(total)
@@ -311,7 +306,6 @@ with tabs[2]:
             return "✅ " + str(total)
 
     sa["Total"] = sa["Total"].apply(alerta_emoji)
-
     st.dataframe(sa, use_container_width=True)
 
 # --- TAB 3: Exportações ---
