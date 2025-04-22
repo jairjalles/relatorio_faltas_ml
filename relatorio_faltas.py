@@ -226,6 +226,10 @@ with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
         conta_sel = "Todas"
+    else:  
+        conta_sel = "Todas"  # ← Garantia
+        df_fil = df_long.copy()  # ← Garantia
+
         # ----------- GRÁFICO DE FALTAS POR CONTA -----------
         st.markdown("### 📊 Faltas por Conta")
         try:
