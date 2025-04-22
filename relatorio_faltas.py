@@ -472,33 +472,28 @@ with tabs[4]:
     )
 
 # --- TAB 5: Configurações ---
-with tabs[5]:  # Supondo que a aba de configurações seja a sexta (índice 5)
+with tabs[5]:  # ⚙️ Configurações
     st.markdown("## ⚙️ Configurações de Filtros")
+    st.markdown("Use os filtros abaixo para ajustar os dados exibidos nos gráficos e na tabela da aba *Dashboard Geral*.")
 
-    st.markdown("Use os filtros abaixo para ajustar os dados exibidos nos gráficos e na tabela da aba Dashboard Geral.")
-
-    conta_sel = st.selectbox(
+    # Inputs de filtro
+    nova_conta = st.selectbox(
         "📁 Filtrar por Conta",
         ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()),
-        key="filtro_conta_config"
+        index=["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()).index(st.session_state.get("filtro_conta_config", "Todas"))
     )
 
-    marca_sel = st.selectbox(
+    nova_marca = st.selectbox(
         "🏷️ Filtrar por Marca",
         ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()),
-        key="filtro_marca_config"
+        index=["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()).index(st.session_state.get("filtro_marca_config", "Todas"))
     )
 
-    # Aplicando os filtros no DataFrame principal
-    df_fil = df_long.copy()
-
-    if conta_sel != "Todas":
-        df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
-
-    if marca_sel != "Todas":
-        df_fil = df_fil[df_fil["Marca"] == marca_sel]
-
-    st.success("✅ Filtros aplicados! Volte à aba *Dashboard Geral* para visualizar os dados atualizados.")
+    # Botão aplicar filtros
+    if st.button("✅ Aplicar Filtros"):
+        st.session_state["filtro_conta_config"] = nova_conta
+        st.session_state["filtro_marca_config"] = nova_marca
+        st.success("🎯 Filtros aplicados com sucesso! Volte à aba *Dashboard Geral* para visualizar os resultados.", icon="✅")
 
 # --- TAB 6: Perfil ---
 with tabs[6]:
