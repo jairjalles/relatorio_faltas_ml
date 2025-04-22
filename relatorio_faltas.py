@@ -234,15 +234,15 @@ with tabs[0]:
             padding: 15px;
             border-radius: 12px;
             text-align: center;
-            height: 100px;
+            height: 60px;
         }
         .custom-card h3 {
             margin: 0;
-            font-size: 18px;
+            font-size: 15px;
         }
         .custom-card p {
             margin-top: 10px;
-            font-size: 22px;
+            font-size: 15px;
             font-weight: bold;
         }
 
@@ -252,7 +252,7 @@ with tabs[0]:
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 100px;
+            height: 60px;
         }
         .custom-filtros p {
             margin: 0;
@@ -295,25 +295,6 @@ with tabs[0]:
                 <p>{now}</p>
             </div>
             """, unsafe_allow_html=True)
-
-        # Filtros ao lado, compactos e sem card
-        with col_filtros:
-            st.markdown("""<div class="custom-filtros">""", unsafe_allow_html=True)
-
-            st.markdown("<p>📁 <strong>Filtrar por Conta</strong></p>", unsafe_allow_html=True)
-            conta_sel = st.selectbox("", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
-
-            st.markdown("<p>🏷️ <strong>Filtrar por Marca</strong></p>", unsafe_allow_html=True)
-            marca_sel = st.selectbox("", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
-
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        # Aplicar filtros
-        df_fil = df_long.copy()
-        if conta_sel != "Todas":
-            df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
-        if marca_sel != "Todas":
-            df_fil = df_fil[df_fil["Marca"] == marca_sel]
             
         # ----------- GRÁFICO DE FALTAS POR CONTA -----------
         st.markdown("### 📊 Faltas por Conta")
