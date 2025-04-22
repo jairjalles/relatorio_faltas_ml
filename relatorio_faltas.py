@@ -218,15 +218,27 @@ df_hist["Data"] = pd.to_datetime(df_hist["Data"])
 
 user = getpass.getuser()
 
+# Tabs principais
 tabs = st.tabs([
     "📊 Dashboard Geral", "📈 Histórico", "🚨 Alertas",
     "📥 Exportações", "📂 Base Criados", "⚙️ Configurações", "👤 Perfil"
 ])
+
+# Recupera filtros da aba Configurações (com fallback para "Todas")
+conta_sel = st.session_state.get("filtro_conta_config", "Todas")
+marca_sel = st.session_state.get("filtro_marca_config", "Todas")
+
+# Aplica os filtros no dataframe
+df_fil = df_long.copy()
+if conta_sel != "Todas":
+    df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
+if marca_sel != "Todas":
+    df_fil = df_fil[df_fil["Marca"] == marca_sel]
+    
 with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
-        conta_sel = "Todas"
-        df_fil = df_long.copy()
+        
     else:
         # CSS dos cards compactos e centralizados
         st.markdown("""
