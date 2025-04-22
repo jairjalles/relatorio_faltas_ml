@@ -162,7 +162,7 @@ st.markdown("""
     <div style='flex: 1;'>
 """, unsafe_allow_html=True)
 
-planilha = st.text_input("", value=st.session_state.get("input_path", "planilhas/FALTAS MERCADO LIVRE 2025.xlsx"), key="input_path")
+planilha = st.text_input("", value=st.session_state.get("input_path", "planilhas/FALTAS MERCADO LIVRE 2025 - Copia.xlsx"), key="input_path")
 
 st.markdown("</div></div>", unsafe_allow_html=True)
 
