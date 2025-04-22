@@ -463,18 +463,33 @@ with tabs[4]:
     )
 
 # --- TAB 5: Configurações ---
-with tabs[5]:
-    st.markdown("## ⚙️ Configurações")
-    sku_search = st.text_input("🔍 Buscar SKU", key="cfg_sku")
-    if sku_search:
-        st.dataframe(
-            df_long[df_long["SKU"].str.contains(sku_search, case=False, na=False)],
-            use_container_width=True
-        )
-    if st.button("🗑️ Limpar histórico", key="cfg_clear"):
-        if os.path.exists(hist_path):
-            os.remove(hist_path)
-            st.success("Histórico removido.")
+with tabs[5]:  # Supondo que a aba de configurações seja a sexta (índice 5)
+    st.markdown("## ⚙️ Configurações de Filtros")
+
+    st.markdown("Use os filtros abaixo para ajustar os dados exibidos nos gráficos e na tabela da aba Dashboard Geral.")
+
+    conta_sel = st.selectbox(
+        "📁 Filtrar por Conta",
+        ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()),
+        key="filtro_conta_config"
+    )
+
+    marca_sel = st.selectbox(
+        "🏷️ Filtrar por Marca",
+        ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()),
+        key="filtro_marca_config"
+    )
+
+    # Aplicando os filtros no DataFrame principal
+    df_fil = df_long.copy()
+
+    if conta_sel != "Todas":
+        df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
+
+    if marca_sel != "Todas":
+        df_fil = df_fil[df_fil["Marca"] == marca_sel]
+
+    st.success("✅ Filtros aplicados! Volte à aba *Dashboard Geral* para visualizar os dados atualizados.")
 
 # --- TAB 6: Perfil ---
 with tabs[6]:
