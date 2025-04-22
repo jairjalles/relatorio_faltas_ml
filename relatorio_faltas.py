@@ -225,66 +225,6 @@ tabs = st.tabs([
 with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
-    else:
-        # CSS dos cards compactos com animação
-        st.markdown("""
-        <style>
-        .custom-card {
-            background-color: rgba(255, 255, 255, 0.07);
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-        .custom-card:hover {
-            transform: scale(1.03);
-            box-shadow: 0 6px 16px rgba(80, 191, 255, 0.3);
-        }
-        .custom-card h3 {
-            margin: 0;
-            font-size: 16px;
-            color: white;
-        }
-        .custom-card p {
-            margin: 5px 0 0;
-            font-size: 22px;
-            font-weight: bold;
-            color: white;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-        # Dados dinâmicos
-        tz = pytz.timezone("America/Sao_Paulo")
-        now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
-
-        # Linha com 3 cards
-        col1, col2, col3 = st.columns(3, gap="medium")
-
-        with col1:
-            st.markdown(f"""
-            <div class="custom-card">
-                <h3>📦 Total de Faltas</h3>
-                <p>{tot_hoje}</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col2:
-            st.markdown(f"""
-            <div class="custom-card">
-                <h3>🏬 Contas Ativas</h3>
-                <p>{df_faltas["Conta_Exibicao"].nunique()}</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col3:
-            st.markdown(f"""
-            <div class="custom-card">
-                <h3>📅 Atualização</h3>
-                <p>{now}</p>
-            </div>
-            """, unsafe_allow_html=True)
 
         # ----------- GRÁFICO DE FALTAS POR CONTA -----------
         st.markdown("### 📊 Faltas por Conta")
