@@ -279,10 +279,7 @@ with tabs[0]:
         # Dados dinâmicos
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
-        conta_sel = "Todas"
-        marca_sel = "Todas"
-        df_fil = df_long.copy()
-
+        
         # --- CARDS ---
         col1, col2, col3 = st.columns(3, gap="medium")
 
