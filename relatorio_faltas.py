@@ -228,7 +228,7 @@ with tabs[0]:
         conta_sel = "Todas"
         df_fil = df_long.copy()
     else:
-        # CSS dos cards compactos
+        # CSS dos cards compactos e centralizados
         st.markdown("""
         <style>
         .custom-card {
@@ -239,6 +239,12 @@ with tabs[0]:
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             height: 100px;
+
+            /* Centralização total */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         .custom-card:hover {
             transform: scale(1.03);
@@ -250,7 +256,7 @@ with tabs[0]:
             color: white;
         }
         .custom-card p {
-            margin-top: 10px;
+            margin-top: 8px;
             font-size: 22px;
             font-weight: bold;
             color: white;
