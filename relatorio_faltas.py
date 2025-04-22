@@ -226,50 +226,42 @@ with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
     else:
-        # CSS para estilização
+        # CSS dos cards compactos com animação
         st.markdown("""
         <style>
         .custom-card {
-            background-color: rgba(255, 255, 255, 0.06);
-            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.07);
+            padding: 20px;
             border-radius: 12px;
             text-align: center;
-            height: 60px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .custom-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 16px rgba(80, 191, 255, 0.3);
         }
         .custom-card h3 {
             margin: 0;
-            font-size: 15px;
+            font-size: 16px;
+            color: white;
         }
         .custom-card p {
-            margin-top: 10px;
-            font-size: 15px;
+            margin: 5px 0 0;
+            font-size: 22px;
             font-weight: bold;
-        }
-
-        .custom-filtros {
-            background-color: transparent;
-            padding-top: 6px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 60px;
-        }
-        .custom-filtros p {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
+            color: white;
         }
         </style>
         """, unsafe_allow_html=True)
 
-        # Dados
+        # Dados dinâmicos
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
 
-        # Colunas para 3 cards + filtros alinhados
-        col1, col2, col3, col_filtros = st.columns([2, 2, 2, 1.5], gap="medium")
+        # Linha com 3 cards
+        col1, col2, col3 = st.columns(3, gap="medium")
 
-        # Card 1
         with col1:
             st.markdown(f"""
             <div class="custom-card">
@@ -278,7 +270,6 @@ with tabs[0]:
             </div>
             """, unsafe_allow_html=True)
 
-        # Card 2
         with col2:
             st.markdown(f"""
             <div class="custom-card">
@@ -287,7 +278,6 @@ with tabs[0]:
             </div>
             """, unsafe_allow_html=True)
 
-        # Card 3
         with col3:
             st.markdown(f"""
             <div class="custom-card">
@@ -295,7 +285,7 @@ with tabs[0]:
                 <p>{now}</p>
             </div>
             """, unsafe_allow_html=True)
-            
+
         # ----------- GRÁFICO DE FALTAS POR CONTA -----------
         st.markdown("### 📊 Faltas por Conta")
         try:
