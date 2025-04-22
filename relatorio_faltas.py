@@ -226,56 +226,89 @@ with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
     else:
+        # CSS para estilização
+        st.markdown("""
+        <style>
+        .custom-card {
+            background-color: rgba(255, 255, 255, 0.06);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            height: 100px;
+        }
+        .custom-card h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .custom-card p {
+            margin-top: 10px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .custom-filtros {
+            background-color: transparent;
+            padding-top: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100px;
+        }
+        .custom-filtros p {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # Dados
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
 
-        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+        # Colunas para 3 cards + filtros alinhados
+        col1, col2, col3, col_filtros = st.columns([2, 2, 2, 1.5], gap="medium")
 
+        # Card 1
         with col1:
-            st.markdown(
-                f"""
-                <div class='custom-card' style='padding:15px; text-align:center;'>
-                    <h4>📦 Total de Faltas</h4>
-                    <p style='font-size:22px;font-weight:bold;'>{tot_hoje}</p>
-                </div>
-                """, unsafe_allow_html=True
-            )
+            st.markdown(f"""
+            <div class="custom-card">
+                <h3>📦 Total de Faltas</h3>
+                <p>{tot_hoje}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
+        # Card 2
         with col2:
-            st.markdown(
-                f"""
-                <div class='custom-card' style='padding:15px; text-align:center;'>
-                    <h4>🏬 Contas Ativas</h4>
-                    <p style='font-size:22px;font-weight:bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p>
-                </div>
-                """, unsafe_allow_html=True
-            )
+            st.markdown(f"""
+            <div class="custom-card">
+                <h3>🏬 Contas Ativas</h3>
+                <p>{df_faltas["Conta_Exibicao"].nunique()}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
+        # Card 3
         with col3:
-            st.markdown(
-                f"""
-                <div class='custom-card' style='padding:15px; text-align:center;'>
-                    <h4>📅 Atualização</h4>
-                    <p style='font-size:18px;font-weight:bold;'>{now}</p>
-                </div>
-                """, unsafe_allow_html=True
-            )
+            st.markdown(f"""
+            <div class="custom-card">
+                <h3>📅 Atualização</h3>
+                <p>{now}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-        with col4:
-            st.markdown(
-                """
-                <div class='custom-card' style='padding:15px; text-align:left;'>
-                    <h4>🎯 Filtros</h4>
-                </div>
-                """, unsafe_allow_html=True
-            )
-            st.markdown("<span style='font-size:15px;'>📁 Filtrar por Conta</span>", unsafe_allow_html=True)
+        # Filtros ao lado, compactos e sem card
+        with col_filtros:
+            st.markdown("""<div class="custom-filtros">""", unsafe_allow_html=True)
+
+            st.markdown("<p>📁 <strong>Filtrar por Conta</strong></p>", unsafe_allow_html=True)
             conta_sel = st.selectbox("", ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()), key="filtro_conta")
 
-            st.markdown("<span style='font-size:15px;'>🏷️ Filtrar por Marca</span>", unsafe_allow_html=True)
+            st.markdown("<p>🏷️ <strong>Filtrar por Marca</strong></p>", unsafe_allow_html=True)
             marca_sel = st.selectbox("", ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()), key="filtro_marca")
 
-        # Aplicar filtros na base
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        # Aplicar filtros
         df_fil = df_long.copy()
         if conta_sel != "Todas":
             df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
