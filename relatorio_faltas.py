@@ -225,7 +225,7 @@ tabs = st.tabs([
 with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
-
+        conta_sel = "Todas"
         # ----------- GRÁFICO DE FALTAS POR CONTA -----------
         st.markdown("### 📊 Faltas por Conta")
         try:
