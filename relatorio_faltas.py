@@ -230,28 +230,46 @@ with tabs[0]:
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
 
         st.markdown("""
-        <style>
-        .custom-card select {
-            max-width: 180px;
-            padding: 6px;
-            font-size: 14px;
-        }
-        .custom-card h3 {
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
-        .custom-card p {
-            font-size: 18px;
-        }
-        .custom-card label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-            color: white;
-            font-size: 15px;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+<style>
+/* Cards compactos */
+.custom-card {
+    background-color: rgba(255,255,255,0.08);
+    padding: 12px 16px;
+    border-radius: 10px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    min-width: 160px;
+    max-width: 180px;
+    height: auto;
+}
+.custom-card h3 {
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+.custom-card p {
+    font-size: 15px;
+    margin: 0;
+}
+
+/* Filtros compactos */
+.filtro-container {
+    background-color: rgba(255,255,255,0.08);
+    padding: 10px 16px;
+    border-radius: 10px;
+    width: 180px;
+}
+.filtro-container h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+.filtro-container label {
+    font-size: 13px;
+    margin-top: 6px;
+    display: block;
+}
+</style>
+""", unsafe_allow_html=True)
 
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
