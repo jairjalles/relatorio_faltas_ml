@@ -226,11 +226,76 @@ with tabs[0]:
     if df_long.empty:
         st.warning("Nenhum dado disponível.")
         conta_sel = "Todas"
-    else:  
-        conta_sel = "Todas"  # ← Garantia
-        df_fil = df_long.copy()  # ← Garantia
+        df_fil = df_long.copy()
+    else:
+        # CSS dos cards compactos
+        st.markdown("""
+        <style>
+        .custom-card {
+            background-color: rgba(255, 255, 255, 0.07);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            height: 100px;
+        }
+        .custom-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 16px rgba(80, 191, 255, 0.3);
+        }
+        .custom-card h3 {
+            margin: 0;
+            font-size: 16px;
+            color: white;
+        }
+        .custom-card p {
+            margin-top: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            color: white;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
-        # ----------- GRÁFICO DE FALTAS POR CONTA -----------
+        # Dados dinâmicos
+        tz = pytz.timezone("America/Sao_Paulo")
+        now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
+        conta_sel = "Todas"
+        marca_sel = "Todas"
+        df_fil = df_long.copy()
+
+        # --- CARDS ---
+        col1, col2, col3 = st.columns(3, gap="medium")
+
+        with col1:
+            st.markdown(f"""
+            <div class="custom-card">
+                <h3>📦 Total de Faltas</h3>
+                <p>{tot_hoje}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown(f"""
+            <div class="custom-card">
+                <h3>🏬 Contas Ativas</h3>
+                <p>{df_faltas["Conta_Exibicao"].nunique()}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col3:
+            st.markdown(f"""
+            <div class="custom-card">
+                <h3>📅 Atualização</h3>
+                <p>{now}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # --- LINHA DIVISÓRIA ---
+        st.markdown("<hr style='margin-top: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1);' />", unsafe_allow_html=True)
+
+        # --- GRÁFICO DE FALTAS POR CONTA ---
         st.markdown("### 📊 Faltas por Conta")
         try:
             df_raw_sem_header = pd.read_excel(planilha, sheet_name="Geral", header=None)
@@ -254,7 +319,7 @@ with tabs[0]:
             g1.update_layout(
                 plot_bgcolor="rgba(255,255,255,0.02)",
                 paper_bgcolor="rgba(255,255,255,0.02)",
-                height=600
+                height=500
             )
             g1.update_traces(textposition="outside")
             st.plotly_chart(g1, use_container_width=True, key="g_contas")
@@ -262,7 +327,7 @@ with tabs[0]:
         except Exception as erro:
             st.error(f"Erro ao gerar gráfico: {erro}")
 
-        # ----------- GRÁFICO MARCAS FILTRADAS -----------
+        # --- GRÁFICO DE MARCAS ---
         st.markdown("### 🏷️ Top Marcas com mais Faltas")
         top_m = (
             df_fil.groupby("Marca")["Faltas"]
@@ -280,7 +345,7 @@ with tabs[0]:
         g2.update_traces(textposition="outside")
         st.plotly_chart(g2, use_container_width=True, key="g_marcas")
 
-        # ----------- TABELA DETALHADA -----------
+        # --- TABELA DETALHADA ---
         st.markdown("### 📋 Tabela Geral de Dados")
         st.dataframe(
             df_fil[["SKU", "Titulo", "Estoque", "Marca", "Conta_Exibicao", "Faltas"]],
