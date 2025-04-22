@@ -476,24 +476,32 @@ with tabs[5]:  # ⚙️ Configurações
     st.markdown("## ⚙️ Configurações de Filtros")
     st.markdown("Use os filtros abaixo para ajustar os dados exibidos nos gráficos e na tabela da aba *Dashboard Geral*.")
 
-    # Inputs de filtro
-    nova_conta = st.selectbox(
-        "📁 Filtrar por Conta",
-        ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()),
-        index=["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()).index(st.session_state.get("filtro_conta_config", "Todas"))
-    )
+    # Lista de opções
+    contas_opcoes = ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist())
+    marcas_opcoes = ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist())
 
-    nova_marca = st.selectbox(
-        "🏷️ Filtrar por Marca",
-        ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()),
-        index=["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()).index(st.session_state.get("filtro_marca_config", "Todas"))
-    )
+    # Índice atual salvo no session_state
+    conta_sel_index = contas_opcoes.index(st.session_state.get("filtro_conta_config", "Todas"))
+    marca_sel_index = marcas_opcoes.index(st.session_state.get("filtro_marca_config", "Todas"))
 
-    # Botão aplicar filtros
-    if st.button("✅ Aplicar Filtros"):
-        st.session_state["filtro_conta_config"] = nova_conta
-        st.session_state["filtro_marca_config"] = nova_marca
-        st.success("🎯 Filtros aplicados com sucesso! Volte à aba *Dashboard Geral* para visualizar os resultados.", icon="✅")
+    # Filtros visuais
+    nova_conta = st.selectbox("📁 Filtrar por Conta", contas_opcoes, index=conta_sel_index)
+    nova_marca = st.selectbox("🏷️ Filtrar por Marca", marcas_opcoes, index=marca_sel_index)
+
+    # Botões
+    col_btn1, col_btn2 = st.columns([1, 1])
+
+    with col_btn1:
+        if st.button("✅ Aplicar Filtros"):
+            st.session_state["filtro_conta_config"] = nova_conta
+            st.session_state["filtro_marca_config"] = nova_marca
+            st.success("🎯 Filtros aplicados! Volte à aba *Dashboard Geral* para visualizar os resultados.", icon="✅")
+
+    with col_btn2:
+        if st.button("🔄 Limpar Filtros"):
+            st.session_state["filtro_conta_config"] = "Todas"
+            st.session_state["filtro_marca_config"] = "Todas"
+            st.info("🧹 Filtros redefinidos. Todos os dados serão exibidos no Dashboard.", icon="ℹ️")
 
 # --- TAB 6: Perfil ---
 with tabs[6]:
