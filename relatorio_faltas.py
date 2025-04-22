@@ -229,51 +229,45 @@ with tabs[0]:
         tz = pytz.timezone("America/Sao_Paulo")
         now = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
 
-        # LINHA DE CARDS + FILTROS
-        col_cards, col_filtros = st.columns([4, 1], gap="large")
-
-        # ----------- CARDS -----------
-        with col_cards:
-            st.markdown(f"""
-            <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:10px;'>
-              <div class='custom-card'><h3>📦 Total de Faltas</h3><p style='font-size:26px;font-weight:bold;'>{tot_hoje}</p></div>
-              <div class='custom-card'><h3>🏬 Contas Ativas</h3><p style='font-size:26px;font-weight:bold;'>{df_faltas["Conta_Exibicao"].nunique()}</p></div>
-              <div class='custom-card'><h3>📅 Atualização</h3><p style='font-size:20px;font-weight:bold;'>{now}</p></div>
+        st.markdown("""
+        <div style='display:flex;gap:20px;flex-wrap:wrap;margin-bottom:30px;'>
+            <div class='custom-card'>
+                <h3>📦 Total de Faltas</h3>
+                <p style='font-size:26px;font-weight:bold;'>""" + str(tot_hoje) + """</p>
             </div>
-            """, unsafe_allow_html=True)
+            <div class='custom-card'>
+                <h3>🏬 Contas Ativas</h3>
+                <p style='font-size:26px;font-weight:bold;'>""" + str(df_faltas["Conta_Exibicao"].nunique()) + """</p>
+            </div>
+            <div class='custom-card'>
+                <h3>📅 Atualização</h3>
+                <p style='font-size:20px;font-weight:bold;'>""" + now + """</p>
+            </div>
+            <div class='custom-card' style='min-width:260px;max-width:300px;'>
+                <h4 style='margin-bottom:15px;'>🎯 <b>Filtros</b></h4>
+                <p style='margin-bottom:5px;'>📁 <b>Filtrar por Conta</b></p>
+                """ + st.selectbox(
+                    label="",  # sem label para encaixar no visual
+                    options=["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()),
+                    key="filtro_conta",
+                    label_visibility="collapsed"
+                ).__str__() + """
+                <p style='margin-top:15px;margin-bottom:5px;'>🏷️ <b>Filtrar por Marca</b></p>
+                """ + st.selectbox(
+                    label="",
+                    options=["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()),
+                    key="filtro_marca",
+                    label_visibility="collapsed"
+                ).__str__() + """
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        # ----------- FILTROS INTEGRADOS EM UM ÚNICO CARD -----------
-        with col_filtros:
-            st.markdown("""
-                <div style='
-                    padding: 20px;
-                    background-color: rgba(255,255,255,0.07);
-                    border-radius: 15px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                    margin-top: 10px;
-                '>
-                    <h5 style='margin-bottom: 20px;'>🎯 <b>Filtros</b></h5>
-                    <p style='margin-bottom:5px;'>📁 <b>Filtrar por Conta</b></p>
-            """, unsafe_allow_html=True)
-
-            conta_sel = st.selectbox(
-                "",  # ocultar label para encaixar visual
-                ["Todas"] + sorted(df_long["Conta_Exibicao"].dropna().unique().tolist()),
-                key="filtro_conta"
-            )
-
-            st.markdown("<p style='margin-top:20px;margin-bottom:5px;'>🏷️ <b>Filtrar por Marca</b></p>", unsafe_allow_html=True)
-
-            marca_sel = st.selectbox(
-                "",  # ocultar label
-                ["Todas"] + sorted(df_long["Marca"].dropna().unique().tolist()),
-                key="filtro_marca"
-            )
-
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        # ----------- APLICAR FILTROS -----------
+        # Aplicar os filtros
         df_fil = df_long.copy()
+        conta_sel = st.session_state.get("filtro_conta", "Todas")
+        marca_sel = st.session_state.get("filtro_marca", "Todas")
+
         if conta_sel != "Todas":
             df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
         if marca_sel != "Todas":
