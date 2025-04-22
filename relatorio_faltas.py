@@ -232,19 +232,28 @@ with tabs[0]:
         st.markdown("""
         <style>
         .custom-card select {
-            max-width: 200px;
+            max-width: 180px;
+            padding: 6px;
+            font-size: 14px;
         }
         .custom-card h3 {
             font-size: 18px;
+            margin-bottom: 5px;
         }
         .custom-card p {
-            font-size: 20px;
+            font-size: 18px;
+        }
+        .custom-card label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            color: white;
+            font-size: 15px;
         }
         </style>
         """, unsafe_allow_html=True)
 
-        # BLOCO DE CARDS COM FILTRO
-        col1, col2, col3, col4 = st.columns([1, 1, 1, 1.1])  # ajuste do último para comportar filtros
+        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
         with col1:
             st.markdown(f"""
@@ -274,7 +283,7 @@ with tabs[0]:
             st.markdown("""
             <div class='custom-card'>
                 <h3>🎯 Filtros</h3>
-                <p>📁 <b>Filtrar por Conta</b></p>
+                <label>📁 Filtrar por Conta</label>
             """, unsafe_allow_html=True)
 
             conta_sel = st.selectbox(
@@ -284,7 +293,7 @@ with tabs[0]:
                 label_visibility="collapsed"
             )
 
-            st.markdown("<p style='margin-top:10px;'>🏷️ <b>Filtrar por Marca</b></p>", unsafe_allow_html=True)
+            st.markdown("<label>🏷️ Filtrar por Marca</label>", unsafe_allow_html=True)
 
             marca_sel = st.selectbox(
                 label="",
@@ -295,7 +304,7 @@ with tabs[0]:
 
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # Aplicar filtros
+        # Aplicar os filtros
         df_fil = df_long.copy()
         if conta_sel != "Todas":
             df_fil = df_fil[df_fil["Conta_Exibicao"] == conta_sel]
